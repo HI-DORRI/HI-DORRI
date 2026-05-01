@@ -1,0 +1,25 @@
+{
+  "name": "hi-dorri",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace @hi-dorri/web",
+    "dev:web": "npm run dev --workspace @hi-dorri/web",
+    "dev:api": "npm run start:dev --workspace @hi-dorri/api",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio"
+  },
+  "devDependencies": {
+    "@prisma/client": "^5.22.0",
+    "prisma": "^5.22.0",
+    "typescript": "^5.6.3"
+  }
+}

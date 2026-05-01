@@ -1,0 +1,123 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  PARTICIPANT
+  ORGANIZER
+  ADMIN
+}
+
+enum MeetupStatus {
+  DRAFT
+  PUBLISHED
+  CLOSED
+}
+
+enum ApplicationStatus {
+  APPLIED
+  CHECKED_IN
+  SETTLED
+  NO_SHOW
+  CANCELED
+}
+
+enum LedgerTxStatus {
+  PENDING
+  VALIDATED
+  FAILED
+}
+
+enum LedgerTxType {
+  WALLET_FUND
+  TRUST_SET
+  DORRI_PAYMENT
+  ESCROW_CREATE
+  ESCROW_FINISH
+  ESCROW_CANCEL
+}
+
+enum ChargeStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+model User {
+  id              String              @id @default(cuid())
+  email           String              @unique
+  displayName     String
+  xrplAddress     String?             @unique
+  encryptedSeed   String?
+  role            UserRole            @default(PARTICIPANT)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  applications    MeetupApplication[]
+  organizedEvents Meetup[]            @relation("OrganizerMeetups")
+  ledgerTxs       WalletLedgerTx[]
+  charges         DorriCharge[]
+}
+
+model Meetup {
+  id                String              @id @default(cuid())
+  title             String
+  description       String
+  venue             String
+  startsAt          DateTime
+  endsAt            DateTime
+  depositAmount     Decimal             @db.Decimal(18, 6)
+  organizerUserId   String
+  settlementAddress String
+  status            MeetupStatus        @default(DRAFT)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  organizer         User                @relation("OrganizerMeetups", fields: [organizerUserId], references: [id])
+  applications      MeetupApplication[]
+}
+
+model MeetupApplication {
+  id                 String            @id @default(cuid())
+  meetupId           String
+  userId             String
+  status             ApplicationStatus @default(APPLIED)
+  escrowSequence     Int?
+  escrowCreateTxHash String?
+  escrowFinishTxHash String?
+  escrowCancelTxHash String?
+  checkedInAt        DateTime?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  meetup             Meetup            @relation(fields: [meetupId], references: [id])
+  user               User              @relation(fields: [userId], references: [id])
+
+  @@unique([meetupId, userId])
+}
+
+model WalletLedgerTx {
+  id          String         @id @default(cuid())
+  userId      String?
+  txHash      String         @unique
+  txType      LedgerTxType
+  status      LedgerTxStatus @default(PENDING)
+  rawJson     Json?
+  createdAt   DateTime       @default(now())
+  validatedAt DateTime?
+  user        User?          @relation(fields: [userId], references: [id])
+}
+
+model DorriCharge {
+  id             String       @id @default(cuid())
+  userId         String
+  amount         Decimal      @db.Decimal(18, 6)
+  trustSetTxHash String?
+  paymentTxHash  String?
+  status         ChargeStatus @default(PENDING)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  user           User         @relation(fields: [userId], references: [id])
+}
