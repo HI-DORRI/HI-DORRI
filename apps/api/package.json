@@ -8,6 +8,8 @@
     "start:dev": "nest start --watch",
     "platform-wallets:init": "ts-node -r tsconfig-paths/register src/scripts/init-platform-wallets.ts",
     "platform-wallets:trustlines": "ts-node -r tsconfig-paths/register src/scripts/create-platform-trustlines.ts",
+    "dorri-issuer:configure": "ts-node -r tsconfig-paths/register src/scripts/configure-dorri-issuer.ts",
+    "reset:dev-data": "ts-node -r tsconfig-paths/register src/scripts/reset-dev-data.ts",
     "seed:dev": "ts-node -r tsconfig-paths/register src/scripts/seed-dev.ts",
     "dorri:return": "ts-node -r tsconfig-paths/register src/scripts/return-dorri-to-issuer.ts",
     "lint": "eslint \"src/**/*.ts\"",

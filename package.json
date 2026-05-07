@@ -18,6 +18,8 @@
     "prisma:studio": "prisma studio",
     "platform-wallets:init": "npm run platform-wallets:init --workspace @hi-dorri/api",
     "platform-wallets:trustlines": "npm run platform-wallets:trustlines --workspace @hi-dorri/api",
+    "dorri-issuer:configure": "npm run dorri-issuer:configure --workspace @hi-dorri/api",
+    "reset:dev-data": "npm run reset:dev-data --workspace @hi-dorri/api",
     "seed:dev": "npm run seed:dev --workspace @hi-dorri/api",
     "dorri:return": "npm run dorri:return --workspace @hi-dorri/api"
   },

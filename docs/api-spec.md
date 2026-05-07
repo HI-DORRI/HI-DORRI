@@ -1543,6 +1543,9 @@ FEE           플랫폼 수수료 최종 수령 지갑.
 
 ```bash
 npm run platform-wallets:trustlines
+npm run dorri-issuer:configure
 ```
 
 주최자 지갑도 DORRI를 수령하려면 해당 계정으로 로그인한 뒤 `/dorri/trustline`을 먼저 호출해야 합니다.
+
+`dorri-issuer:configure`는 issuer의 `DefaultRipple`, `AllowTrustLineLocking`을 설정하고 기존 DORRI TrustLine의 issuer-side NoRipple을 정리합니다. 이 설정이 없으면 settlement wallet에서 참가자/주최자/수수료 지갑으로 DORRI를 보낼 때 XRPL `tecPATH_DRY`가 발생할 수 있습니다.

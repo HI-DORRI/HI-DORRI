@@ -167,7 +167,10 @@ FEE는 플랫폼 수수료 보관 지갑입니다. 유료 밋업 수수료 Settl
 
 ```bash
 npm run platform-wallets:trustlines
+npm run dorri-issuer:configure
 ```
+
+`dorri-issuer:configure`는 issuer 계정의 `DefaultRipple`, `AllowTrustLineLocking`을 설정하고 기존 TrustLine의 issuer-side NoRipple을 정리합니다. DORRI 정산은 settlement wallet에서 다른 유저 지갑으로 IOU를 전송하므로 이 설정이 필요합니다.
 
 ## DorriAccount
 
