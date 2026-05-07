@@ -1,5 +1,3 @@
-<div style={{background: 'red', padding: '20px'}}>테스트</div>
-
 "use client";
 
 import React from 'react';
