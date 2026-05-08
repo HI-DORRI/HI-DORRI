@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --purple-main: #7B5CF6;
+  --purple-light: #A78BFA;
+  --purple-bg: #C4B5FD;
+  --purple-deep: #5B21B6;
+}
+
+body {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #7d7d7d;
+  color: #17171b;
+}
+
+button,
+a {
+  touch-action: manipulation;
+}
+
+.app-shell {
+  max-width: 390px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.home-shell {
+  max-width: 390px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+@media (min-width: 430px) {
+  .home-shell {
+    max-width: none;
+    width: 100%;
+  }
+}
+
+@media (min-width: 768px) {
+  .home-shell {
+    max-width: none;
+    width: 100%;
+  }
+}
