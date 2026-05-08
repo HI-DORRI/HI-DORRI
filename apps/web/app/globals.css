@@ -13,7 +13,13 @@
 
 body {
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #fafafa;
+  background: #7d7d7d;
+  color: #17171b;
+}
+
+button,
+a {
+  touch-action: manipulation;
 }
 
 .app-shell {
@@ -21,5 +27,27 @@ body {
   margin: 0 auto;
   min-height: 100dvh;
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
+}
+
+.home-shell {
+  max-width: 390px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+@media (min-width: 430px) {
+  .home-shell {
+    max-width: none;
+    width: 100%;
+  }
+}
+
+@media (min-width: 768px) {
+  .home-shell {
+    max-width: none;
+    width: 100%;
+  }
 }
