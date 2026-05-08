@@ -2,34 +2,51 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import BottomNav from '@/components/BottomNav'
+import { useLang } from '@/components/LangContext'
+
+const t = {
+  KOR: {
+    title: '밋업 탐색',
+    searchPlaceholder: '🔍  밋업 검색',
+    tags: ['전체', '언어교환', '아웃도어', '게임', '스포츠', '문화'],
+  },
+  ENG: {
+    title: 'Explore Meetups',
+    searchPlaceholder: '🔍  Search meetups',
+    tags: ['All', 'Language', 'Outdoor', 'Games', 'Sports', 'Culture'],
+  }
+}
 
 const meetups = [
-  { id: '1', title: '서울 언어교환 모임', tag: '언어교환', members: 12, date: '5월 10일', emoji: '🗣️', loc: '마포구' },
-  { id: '2', title: '한강 피크닉 클럽', tag: '아웃도어', members: 8, date: '5월 12일', emoji: '🌸', loc: '영등포구' },
-  { id: '3', title: '홍대 보드게임 나이트', tag: '게임', members: 6, date: '5월 14일', emoji: '🎲', loc: '마포구' },
-  { id: '4', title: '강남 러닝 크루', tag: '스포츠', members: 20, date: '5월 15일', emoji: '🏃', loc: '강남구' },
+  { id: '1', title: { KOR: '서울 언어교환 모임', ENG: 'Seoul Language Exchange' }, tag: { KOR: '언어교환', ENG: 'Language' }, members: 12, date: '5월 10일', emoji: '🗣️', loc: { KOR: '마포구', ENG: 'Mapo-gu' } },
+  { id: '2', title: { KOR: '한강 피크닉 클럽', ENG: 'Han River Picnic Club' }, tag: { KOR: '아웃도어', ENG: 'Outdoor' }, members: 8, date: '5월 12일', emoji: '🌸', loc: { KOR: '영등포구', ENG: 'Yeongdeungpo' } },
+  { id: '3', title: { KOR: '홍대 보드게임 나이트', ENG: 'Hongdae Board Game Night' }, tag: { KOR: '게임', ENG: 'Games' }, members: 6, date: '5월 14일', emoji: '🎲', loc: { KOR: '마포구', ENG: 'Mapo-gu' } },
+  { id: '4', title: { KOR: '강남 러닝 크루', ENG: 'Gangnam Running Crew' }, tag: { KOR: '스포츠', ENG: 'Sports' }, members: 20, date: '5월 15일', emoji: '🏃', loc: { KOR: '강남구', ENG: 'Gangnam-gu' } },
 ]
 
-const tags = ['전체', '언어교환', '아웃도어', '게임', '스포츠', '문화']
-
 export default function Meetups() {
-  const [activeTag, setActiveTag] = useState('전체')
-  const filtered = activeTag === '전체' ? meetups : meetups.filter(m => m.tag === activeTag)
+  const { lang } = useLang()
+  const tx = t[lang]
+  const [activeTag, setActiveTag] = useState(tx.tags[0])
+
+  const filtered = activeTag === tx.tags[0]
+    ? meetups
+    : meetups.filter(m => m.tag[lang] === activeTag)
 
   return (
     <div className="app-shell bg-gray-50 pb-24">
       <div className="px-5 pt-14 pb-4 bg-white border-b border-gray-100">
-        <h1 className="text-2xl font-black text-gray-900">밋업 탐색</h1>
-        <input placeholder="🔍  밋업 검색"
+        <h1 className="text-2xl font-black text-gray-900">{tx.title}</h1>
+        <input placeholder={tx.searchPlaceholder}
           className="w-full mt-4 px-4 py-3 rounded-2xl border-2 border-gray-200 bg-gray-50 text-sm outline-none focus:border-purple-400 transition" />
       </div>
 
       <div className="px-5 pt-3 flex gap-2 overflow-x-auto pb-2" style={{ scrollbarWidth: 'none' }}>
-        {tags.map(t => (
-          <button key={t} onClick={() => setActiveTag(t)}
+        {tx.tags.map(tag => (
+          <button key={tag} onClick={() => setActiveTag(tag)}
             className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-semibold border-2 transition
-              ${activeTag === t ? 'bg-purple-600 text-white border-purple-600' : 'bg-white text-gray-600 border-gray-200'}`}>
-            {t}
+              ${activeTag === tag ? 'bg-purple-600 text-white border-purple-600' : 'bg-white text-gray-600 border-gray-200'}`}>
+            {tag}
           </button>
         ))}
       </div>
@@ -43,9 +60,9 @@ export default function Meetups() {
               {m.emoji}
             </div>
             <div className="flex-1 min-w-0">
-              <span className="text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">{m.tag}</span>
-              <p className="font-bold text-gray-900 mt-1 truncate">{m.title}</p>
-              <p className="text-xs text-gray-400 mt-0.5">{m.date} · {m.loc} · {m.members}명</p>
+              <span className="text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">{m.tag[lang]}</span>
+              <p className="font-bold text-gray-900 mt-1 truncate">{m.title[lang]}</p>
+              <p className="text-xs text-gray-400 mt-0.5">{m.date} · {m.loc[lang]} · {m.members}{lang === 'KOR' ? '명' : ' people'}</p>
             </div>
           </Link>
         ))}
