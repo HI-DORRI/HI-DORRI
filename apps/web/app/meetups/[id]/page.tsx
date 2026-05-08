@@ -142,7 +142,7 @@ export default function MeetupDetail({ params }: { params: Promise<{ id: string 
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-end justify-center">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowModal(false)} />
-          <div className="relative w-full max-w-[390px] bg-white rounded-t-3xl p-6 pb-10">
+          <div className="relative w-full max-w-[390px] bg-white rounded-t-3xl p-6 pb-24">
             <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-6" />
             <h2 className="text-[18px] font-black text-[#232129] text-center">{tx.applyTitle}</h2>
             <p className="text-[13px] text-gray-500 text-center mt-1">{m.title[lang]}</p>
