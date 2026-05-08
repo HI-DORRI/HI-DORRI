@@ -1,199 +1,123 @@
 'use client'
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { ArrowLeft, Camera, Calendar, Clock, MapPin, Users, MoreVertical } from 'lucide-react'
+import Link from 'next/link'
+import { ArrowLeft, Calendar, MapPin, Users, Check } from 'lucide-react'
+import BottomNav from '@/components/BottomNav'
 
-export default function CreateMeetup() {
-  const router = useRouter()
-  const [title, setTitle] = useState('')
-  const [date, setDate] = useState('')
-  const [startTime, setStartTime] = useState('')
-  const [endTime, setEndTime] = useState('')
-  const [location, setLocation] = useState('')
-  const [capacity, setCapacity] = useState(0)
-  const [type, setType] = useState<'free' | 'paid'>('free')
-  const [fee, setFee] = useState(0)
+const data: Record<string, { title: string; tag: string; emoji: string; date: string; loc: string; desc: string; members: number; fee: number }> = {
+  '1': { title: '서울 언어교환 모임', tag: '언어교환', emoji: '🗣️', date: '2025년 5월 10일 오후 3시', loc: '마포구 홍대입구역 근처', desc: '한국어와 영어를 교환하며 배우는 모임이에요. 초급부터 고급까지 누구나 환영합니다!', members: 12, fee: 0 },
+  '2': { title: '한강 피크닉 클럽', tag: '아웃도어', emoji: '🌸', date: '2025년 5월 12일 오후 2시', loc: '여의도 한강공원', desc: '봄날 한강에서 함께 피크닉을 즐겨요. 돗자리와 간단한 먹거리를 준비해오세요.', members: 8, fee: 20 },
+  '3': { title: '홍대 보드게임 나이트', tag: '게임', emoji: '🎲', date: '2025년 5월 14일 오후 7시', loc: '마포구 홍대 보드게임 카페', desc: '다양한 보드게임을 함께 즐기는 모임! 초보자도 환영하고 게임 설명도 해드려요.', members: 6, fee: 10 },
+  '4': { title: '강남 러닝 크루', tag: '스포츠', emoji: '🏃', date: '2025년 5월 15일 오전 7시', loc: '강남구 양재천', desc: '매주 토요일 아침 가볍게 5km를 함께 뛰어요. 페이스는 자유입니다!', members: 20, fee: 0 },
+}
 
-  const isReady = title && date && startTime && endTime && location && capacity > 0
+export default function MeetupDetail({ params }: { params: { id: string } }) {
+  const m = data[params.id] ?? data['1']
+  const [showModal, setShowModal] = useState(false)
+  const [applied, setApplied] = useState(false)
 
   return (
-    <div className="app-shell bg-white min-h-dvh pb-10">
-      {/* 헤더 */}
-      <div className="flex items-center justify-between px-5 pt-12 pb-4 border-b border-gray-100">
-        <button onClick={() => router.back()} className="p-2 -ml-2">
-          <ArrowLeft size={20} />
-        </button>
-        <h1 className="text-[16px] font-black text-[#232129]">밋업 만들기</h1>
-        <button className="p-2 -mr-2">
-          <MoreVertical size={20} />
-        </button>
+    <div className="app-shell bg-gray-50 min-h-dvh pb-24">
+      {/* 상단 배너 */}
+      <div className="relative h-52 flex items-center justify-center"
+        style={{ background: 'linear-gradient(160deg, #B39DFA, #EDE9FE)' }}>
+        <Link href="/meetups" className="absolute top-14 left-4 p-2 rounded-xl bg-white/70 backdrop-blur">
+          <ArrowLeft size={18} />
+        </Link>
+        <span className="text-8xl">{m.emoji}</span>
       </div>
 
-      {/* 커버 사진 */}
-      <div className="mx-5 mt-5 h-[160px] rounded-2xl bg-gray-200 flex items-center justify-center">
-        <button className="flex items-center gap-2 bg-white/80 backdrop-blur px-4 py-2 rounded-full text-[13px] font-semibold text-gray-700">
-          <Camera size={16} />
-          커버 사진 변경
-        </button>
+      <div className="px-5 mt-4">
+        <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100">
+          <span className="text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">{m.tag}</span>
+          <h1 className="text-xl font-black text-gray-900 mt-2">{m.title}</h1>
+
+          <div className="mt-4 flex flex-col gap-3">
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <Calendar size={15} className="text-purple-400" />
+              {m.date}
+            </div>
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <MapPin size={15} className="text-purple-400" />
+              {m.loc}
+            </div>
+            <div className="flex items-center gap-2 text-sm text-gray-500">
+              <Users size={15} className="text-purple-400" />
+              {m.members}명 참여 중
+            </div>
+          </div>
+
+          <hr className="my-4 border-gray-100" />
+          <p className="text-sm text-gray-600 leading-relaxed">{m.desc}</p>
+
+          {m.fee > 0 && (
+            <div className="mt-4 bg-purple-50 rounded-xl p-3 flex items-center justify-between">
+              <span className="text-[12px] font-semibold text-purple-700">참가비</span>
+              <span className="text-[14px] font-black text-purple-700">{m.fee} DORRI</span>
+            </div>
+          )}
+        </div>
+
+        {/* 참여 신청 버튼 */}
+        {applied ? (
+          <div className="mt-4 w-full py-4 rounded-2xl bg-green-50 border-2 border-green-200 flex items-center justify-center gap-2">
+            <Check size={18} className="text-green-600" />
+            <span className="font-bold text-green-600">참여 신청 완료!</span>
+          </div>
+        ) : (
+          <button
+            onClick={() => setShowModal(true)}
+            className="w-full mt-4 py-4 rounded-2xl font-bold text-white text-base shadow-lg"
+            style={{ background: 'linear-gradient(90deg, #7B5CF6, #6D28D9)' }}>
+            참여 신청하기
+          </button>
+        )}
       </div>
 
-      <div className="px-5 mt-6 flex flex-col gap-5">
-        {/* 밋업 제목 */}
-        <div>
-          <label className="text-[13px] font-bold text-[#232129] mb-2 block">밋업 제목</label>
-          <input
-            value={title}
-            onChange={e => setTitle(e.target.value)}
-            placeholder="입력하세요.."
-            className="w-full px-4 py-3.5 rounded-xl border border-gray-200 text-[14px] outline-none focus:border-purple-400 transition"
-          />
-        </div>
+      {/* 참여 신청 모달 */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowModal(false)} />
+          <div className="relative w-full max-w-[390px] bg-white rounded-t-3xl p-6 pb-10">
+            <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-6" />
+            <h2 className="text-[18px] font-black text-[#232129] text-center">참여 신청</h2>
+            <p className="text-[13px] text-gray-500 text-center mt-1">{m.title}</p>
 
-        {/* 주최자 */}
-        <div>
-          <label className="text-[13px] font-bold text-[#232129] mb-2 block">주최자</label>
-          <input
-            value="CryptoMagic"
-            readOnly
-            className="w-full px-4 py-3.5 rounded-xl border border-gray-200 text-[14px] bg-gray-50 text-gray-500"
-          />
-        </div>
-
-        {/* 날짜 */}
-        <div>
-          <label className="text-[13px] font-bold text-[#232129] mb-2 block">날짜</label>
-          <div className="relative">
-            <Calendar size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type="date"
-              value={date}
-              onChange={e => setDate(e.target.value)}
-              placeholder="YYYY-MM-DD"
-              className="w-full pl-10 pr-4 py-3.5 rounded-xl border border-gray-200 text-[14px] outline-none focus:border-purple-400 transition"
-            />
-          </div>
-        </div>
-
-        {/* 시간 */}
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-[13px] font-bold text-[#232129] mb-2 block">시작 시간</label>
-            <div className="relative">
-              <Clock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input
-                type="time"
-                value={startTime}
-                onChange={e => setStartTime(e.target.value)}
-                className="w-full pl-10 pr-4 py-3.5 rounded-xl border border-gray-200 text-[14px] outline-none focus:border-purple-400 transition"
-              />
+            <div className="mt-5 flex flex-col gap-3">
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl">
+                <span className="text-[13px] text-gray-500 font-medium">참가비</span>
+                <span className="text-[14px] font-black text-[#232129]">
+                  {m.fee > 0 ? `${m.fee} DORRI` : '무료'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl">
+                <span className="text-[13px] text-gray-500 font-medium">날짜</span>
+                <span className="text-[13px] font-bold text-[#232129]">{m.date}</span>
+              </div>
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl">
+                <span className="text-[13px] text-gray-500 font-medium">장소</span>
+                <span className="text-[13px] font-bold text-[#232129]">{m.loc}</span>
+              </div>
             </div>
-          </div>
-          <div>
-            <label className="text-[13px] font-bold text-[#232129] mb-2 block">종료 시간</label>
-            <div className="relative">
-              <Clock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-              <input
-                type="time"
-                value={endTime}
-                onChange={e => setEndTime(e.target.value)}
-                className="w-full pl-10 pr-4 py-3.5 rounded-xl border border-gray-200 text-[14px] outline-none focus:border-purple-400 transition"
-              />
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setShowModal(false)}
+                className="flex-1 py-3.5 rounded-2xl border-2 border-gray-200 font-bold text-gray-500 text-[14px]">
+                취소
+              </button>
+              <button
+                onClick={() => { setApplied(true); setShowModal(false) }}
+                className="flex-1 py-3.5 rounded-2xl font-bold text-white text-[14px]"
+                style={{ background: 'linear-gradient(90deg, #7B5CF6, #6D28D9)' }}>
+                신청 확인
+              </button>
             </div>
           </div>
         </div>
+      )}
 
-        {/* 장소 */}
-        <div>
-          <label className="text-[13px] font-bold text-[#232129] mb-2 block">장소</label>
-          <div className="relative">
-            <MapPin size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              value={location}
-              onChange={e => setLocation(e.target.value)}
-              placeholder="입력하세요..."
-              className="w-full pl-10 pr-4 py-3.5 rounded-xl border border-gray-200 text-[14px] outline-none focus:border-purple-400 transition"
-            />
-          </div>
-        </div>
-
-        {/* 정원 */}
-        <div>
-          <label className="text-[13px] font-bold text-[#232129] mb-2 block">정원</label>
-          <div className="relative">
-            <Users size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input
-              type="number"
-              value={capacity || ''}
-              onChange={e => setCapacity(Number(e.target.value))}
-              placeholder="0"
-              min={1}
-              className="w-full pl-10 pr-16 py-3.5 rounded-xl border border-gray-200 text-[14px] outline-none focus:border-purple-400 transition"
-            />
-            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[13px] text-gray-400 font-medium">명</span>
-          </div>
-        </div>
-
-        <hr className="border-gray-100" />
-
-        {/* 밋업 유형 */}
-        <div>
-          <label className="text-[13px] font-bold text-[#232129] mb-3 block">밋업 유형</label>
-          <div className="grid grid-cols-2 rounded-xl overflow-hidden border border-gray-200">
-            <button
-              onClick={() => setType('free')}
-              className={`py-3 text-[14px] font-bold transition ${type === 'free' ? 'bg-[#7B5CF6] text-white' : 'bg-white text-gray-500'}`}>
-              무료
-            </button>
-            <button
-              onClick={() => setType('paid')}
-              className={`py-3 text-[14px] font-bold transition ${type === 'paid' ? 'bg-[#7B5CF6] text-white' : 'bg-white text-gray-500'}`}>
-              유료
-            </button>
-          </div>
-        </div>
-
-        {/* 보증금 / 참가비 */}
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="text-[13px] font-bold text-[#232129] mb-2 block">보증금</label>
-            <div className="px-4 py-3.5 rounded-xl border border-gray-200 flex items-center justify-end">
-              <span className="text-[14px] font-black text-[#7B5CF6]">200</span>
-              <span className="text-[12px] text-gray-400 ml-1">DORRI</span>
-            </div>
-          </div>
-          <div>
-            <label className="text-[13px] font-bold text-[#232129] mb-2 block">참가비</label>
-            <div className="relative">
-              <input
-                type="number"
-                value={fee || ''}
-                onChange={e => setFee(Number(e.target.value))}
-                placeholder="0"
-                disabled={type === 'free'}
-                className="w-full px-4 py-3.5 rounded-xl border border-gray-200 text-[14px] text-right font-black text-[#7B5CF6] outline-none focus:border-purple-400 disabled:bg-gray-50 disabled:text-gray-400 transition"
-              />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[12px] text-gray-400">DORRI</span>
-            </div>
-          </div>
-        </div>
-
-        {/* 안내 문구 */}
-        <div className="flex items-start gap-2 bg-purple-50 rounded-xl p-4">
-          <span className="text-purple-400 mt-0.5 text-[14px]">ℹ️</span>
-          <p className="text-[12px] text-[#656070] leading-relaxed">
-            호스트 보증금과 참가비는 <span className="text-purple-600 font-semibold">에스크로</span>로 안전하게 보관되며, 밋업 종료 후 정산됩니다.
-          </p>
-        </div>
-
-        {/* 등록 버튼 */}
-        <button
-          disabled={!isReady}
-          onClick={() => router.push('/meetups/create/success')}
-          className="w-full py-4 rounded-2xl font-bold text-white text-[15px] transition disabled:opacity-40"
-          style={{ background: 'linear-gradient(90deg, #7B5CF6, #6D28D9)' }}>
-          등록하기
-        </button>
-      </div>
+      <BottomNav />
     </div>
   )
 }
