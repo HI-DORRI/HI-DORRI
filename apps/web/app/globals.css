@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --purple-main: #7B5CF6;
+  --purple-light: #A78BFA;
+  --purple-bg: #C4B5FD;
+  --purple-deep: #5B21B6;
+}
+
+body {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #fafafa;
+}
+
+.app-shell {
+  max-width: 390px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  position: relative;
+  overflow: hidden;
+}
