@@ -101,7 +101,7 @@ const t = {
   }
 }
 
-
+import { useLang } from '@/components/LangContext'
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Eye, EyeOff, Check, Mail, Shield, Users } from 'lucide-react'
@@ -118,7 +118,7 @@ const walletSteps = [
 export default function SignupPage() {
   const router = useRouter()
   const [step, setStep] = useState<Step>('method')
-  const [lang, setLang] = useState<'KOR' | 'ENG'>('KOR')
+  const { lang, setLang } = useLang()
 
   // form
   const [name, setName] = useState('')
@@ -191,7 +191,7 @@ export default function SignupPage() {
     <div className="app-shell min-h-dvh flex flex-col items-center justify-between pb-10 px-5 pt-8 bg-white">
       <div className="w-full flex justify-end">
         <button
-          onClick={() => setLang(l => l === 'KOR' ? 'ENG' : 'KOR')}
+          onClick={() => setLang(lang === 'KOR' ? 'ENG' : 'KOR')}
           className="px-3 py-1.5 rounded-xl border border-gray-200 text-[12px] font-bold text-gray-600">
           {lang}
         </button>

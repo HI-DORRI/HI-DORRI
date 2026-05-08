@@ -1,9 +1,9 @@
 'use client'
-import { useState } from 'react'
 import Link from 'next/link'
+import { useLang } from '@/components/LangContext'
 
 export default function Landing() {
-  const [lang, setLang] = useState<'KOR' | 'ENG'>('KOR')
+  const { lang, setLang } = useLang()
 
   const t = {
     KOR: {
@@ -24,22 +24,19 @@ export default function Landing() {
     <div className="app-shell flex flex-col min-h-dvh relative"
       style={{ background: 'linear-gradient(180deg, #B39DFA 0%, #C4B5FD 30%, #DDD6FE 60%, #EDE9FE 100%)' }}>
 
-      {/* 배경 원형 장식 */}
       <div className="absolute top-[-80px] left-1/2 -translate-x-1/2 w-[340px] h-[340px] rounded-full"
         style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.25) 0%, transparent 70%)' }} />
       <div className="absolute top-[20px] left-1/2 -translate-x-1/2 w-[220px] h-[220px] rounded-full"
         style={{ background: 'radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%)' }} />
 
-      {/* 언어 토글 */}
       <div className="absolute top-4 right-4 z-10">
         <button
-          onClick={() => setLang(l => l === 'KOR' ? 'ENG' : 'KOR')}
+          onClick={() => setLang(lang === 'KOR' ? 'ENG' : 'KOR')}
           className="px-4 py-2 rounded-xl bg-white/90 backdrop-blur text-[13px] font-black text-gray-700 shadow-sm border border-white/60">
           {lang}
         </button>
       </div>
 
-      {/* 로고 영역 */}
       <div className="flex-1 flex items-center justify-center">
         <div className="flex items-end gap-2">
           <div>
@@ -53,7 +50,6 @@ export default function Landing() {
         </div>
       </div>
 
-      {/* 하단 버튼 */}
       <div className="px-6 pb-12 flex flex-col gap-3">
         <Link href="/signup"
           className="w-full py-4 rounded-2xl text-white text-[16px] font-bold text-center shadow-lg"
