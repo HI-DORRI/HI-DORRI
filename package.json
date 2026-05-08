@@ -1,0 +1,31 @@
+{
+  "name": "hi-dorri",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace @hi-dorri/web",
+    "dev:web": "npm run dev --workspace @hi-dorri/web",
+    "dev:api": "npm run start:dev --workspace @hi-dorri/api",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio",
+    "platform-wallets:init": "npm run platform-wallets:init --workspace @hi-dorri/api",
+    "platform-wallets:trustlines": "npm run platform-wallets:trustlines --workspace @hi-dorri/api",
+    "dorri-issuer:configure": "npm run dorri-issuer:configure --workspace @hi-dorri/api",
+    "reset:dev-data": "npm run reset:dev-data --workspace @hi-dorri/api",
+    "seed:dev": "npm run seed:dev --workspace @hi-dorri/api",
+    "dorri:return": "npm run dorri:return --workspace @hi-dorri/api"
+  },
+  "devDependencies": {
+    "@prisma/client": "^5.22.0",
+    "prisma": "^5.22.0",
+    "typescript": "^5.6.3"
+  }
+}

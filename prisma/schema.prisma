@@ -1,0 +1,440 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum XrplNetwork {
+  TESTNET
+  MAINNET
+}
+
+enum TrustLineStatus {
+  PENDING
+  ACTIVE
+  FAILED
+}
+
+enum MeetupType {
+  FREE
+  PAID
+}
+
+enum MeetupStatus {
+  DRAFT
+  PUBLISHED
+  CLOSED
+  SETTLED
+}
+
+enum ApplicationStatus {
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+  CHECKED_IN
+  REVIEWED
+  NO_SHOW
+  SETTLED
+  CANCELED
+}
+
+enum EscrowStatus {
+  CREATED
+  FINISHED
+  CANCELED
+  FAILED
+}
+
+enum SettlementStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum SettlementReason {
+  REJECTED
+  FREE_ATTENDED
+  FREE_NO_SHOW
+  FREE_CANCELED_48H_PLUS
+  FREE_CANCELED_24_48
+  FREE_CANCELED_WITHIN_24
+  PAID_ATTENDED
+  PAID_NO_SHOW
+  PAID_CANCELED_48H_PLUS
+  PAID_CANCELED_24_48
+  PAID_CANCELED_WITHIN_24
+}
+
+enum SettlementLineType {
+  PARTICIPANT_REFUND
+  HOST_PAYOUT
+  PLATFORM_FEE
+  NO_SHOW_PENALTY
+}
+
+enum LedgerTxStatus {
+  PENDING
+  VALIDATED
+  FAILED
+}
+
+enum LedgerTxType {
+  WALLET_FUND
+  TRUST_SET
+  DORRI_PAYMENT
+  ESCROW_CREATE
+  ESCROW_FINISH
+  ESCROW_CANCEL
+  SETTLEMENT_PAYMENT
+}
+
+enum DorriChargeStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum PlatformWalletKind {
+  DORRI_ISSUER
+  SETTLEMENT
+  FEE
+}
+
+enum ReputationEventType {
+  ATTENDANCE
+  CANCEL_48H_PLUS
+  CANCEL_24_48
+  CANCEL_WITHIN_24
+  NO_SHOW
+}
+
+model User {
+  id                             String                           @id @default(cuid())
+  email                          String                           @unique
+  name                           String
+  passwordHash                   String
+  emailVerifiedAt                DateTime?
+  profileImageUrl                String?
+  reputationScore                Decimal                          @default(3) @db.Decimal(5, 2)
+  createdAt                      DateTime                         @default(now())
+  updatedAt                      DateTime                         @updatedAt
+  wallet                         Wallet?
+  dorriAccount                   DorriAccount?
+  applications                   MeetupApplication[]
+  organizedMeetups               Meetup[]                         @relation("OrganizerMeetups")
+  reviews                        Review[]
+  charges                        DorriCharge[]
+  chargeQuotes                   DorriChargeQuote[]
+  ledgerTxs                      LedgerTx[]
+  reputationEvents               UserReputationEvent[]
+  organizerEvaluationsGiven      OrganizerParticipantEvaluation[] @relation("OrganizerEvaluationsGiven")
+  participantEvaluationsReceived OrganizerParticipantEvaluation[] @relation("ParticipantEvaluationsReceived")
+  blockedUsers                   UserBlock[]                      @relation("UserBlocksMade")
+  blockedByUsers                 UserBlock[]                      @relation("UserBlocksReceived")
+
+  @@index([email])
+}
+
+model EmailVerificationCode {
+  id         String    @id @default(cuid())
+  email      String
+  codeHash   String
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([email])
+}
+
+model Wallet {
+  id            String      @id @default(cuid())
+  userId        String      @unique
+  xrplAddress   String      @unique
+  encryptedSeed String
+  network       XrplNetwork @default(TESTNET)
+  fundingTxHash String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PlatformWallet {
+  id            String             @id @default(cuid())
+  kind          PlatformWalletKind @unique
+  xrplAddress   String             @unique
+  encryptedSeed String?
+  network       XrplNetwork        @default(TESTNET)
+  fundingTxHash String?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  @@index([network])
+}
+
+model DorriAccount {
+  id               String          @id @default(cuid())
+  userId           String          @unique
+  currency         String          @default("DORRI")
+  issuerAddress    String
+  trustLineLimit   Decimal         @db.Decimal(18, 6)
+  trustLineStatus  TrustLineStatus @default(PENDING)
+  trustLineTxHash  String?
+  balanceSnapshot  Decimal         @default(0) @db.Decimal(18, 6)
+  balanceCheckedAt DateTime?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Meetup {
+  id            String              @id @default(cuid())
+  organizerId   String
+  title         String
+  description   String
+  hostName      String?
+  imageUrl      String?
+  locationName  String
+  address       String
+  mapImageUrl   String?
+  startsAt      DateTime
+  endsAt        DateTime
+  type          MeetupType
+  depositDorri  Decimal             @default(0) @db.Decimal(18, 6)
+  entryFeeDorri Decimal             @default(0) @db.Decimal(18, 6)
+  capacity      Int
+  status        MeetupStatus        @default(DRAFT)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  organizer     User                @relation("OrganizerMeetups", fields: [organizerId], references: [id])
+  applications  MeetupApplication[]
+  reviews       Review[]
+  settlements   Settlement[]
+  tags          MeetupTag[]
+
+  @@index([organizerId])
+  @@index([status, startsAt])
+  @@index([type])
+}
+
+model MeetupTag {
+  id       String @id @default(cuid())
+  meetupId String
+  name     String
+  meetup   Meetup @relation(fields: [meetupId], references: [id], onDelete: Cascade)
+
+  @@unique([meetupId, name])
+  @@index([meetupId])
+}
+
+model MeetupApplication {
+  id                  String                          @id @default(cuid())
+  meetupId            String
+  userId              String
+  status              ApplicationStatus               @default(PENDING_APPROVAL)
+  lockedDorriAmount   Decimal                         @db.Decimal(18, 6)
+  appliedAt           DateTime                        @default(now())
+  approvedAt          DateTime?
+  rejectedAt          DateTime?
+  checkedInAt         DateTime?
+  noShowAt            DateTime?
+  reviewedAt          DateTime?
+  settledAt           DateTime?
+  canceledAt          DateTime?
+  createdAt           DateTime                        @default(now())
+  updatedAt           DateTime                        @updatedAt
+  meetup              Meetup                          @relation(fields: [meetupId], references: [id])
+  user                User                            @relation(fields: [userId], references: [id])
+  escrow              Escrow?
+  review              Review?
+  settlement          Settlement?
+  reputationEvent     UserReputationEvent?
+  organizerEvaluation OrganizerParticipantEvaluation?
+  blocks              UserBlock[]
+
+  @@unique([meetupId, userId])
+  @@index([userId, status])
+  @@index([meetupId, status])
+}
+
+model UserReputationEvent {
+  id            String              @id @default(cuid())
+  userId        String
+  applicationId String              @unique
+  type          ReputationEventType
+  delta         Decimal             @db.Decimal(5, 2)
+  reason        String?
+  createdAt     DateTime            @default(now())
+  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  application   MeetupApplication   @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([type])
+}
+
+model OrganizerParticipantEvaluation {
+  id            String            @id @default(cuid())
+  applicationId String            @unique
+  organizerId   String
+  participantId String
+  rating        Int
+  tags          String[]
+  comment       String?
+  blocked       Boolean           @default(false)
+  blockReason   String?
+  createdAt     DateTime          @default(now())
+  application   MeetupApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  organizer     User              @relation("OrganizerEvaluationsGiven", fields: [organizerId], references: [id], onDelete: Cascade)
+  participant   User              @relation("ParticipantEvaluationsReceived", fields: [participantId], references: [id], onDelete: Cascade)
+
+  @@index([organizerId])
+  @@index([participantId])
+}
+
+model UserBlock {
+  id            String             @id @default(cuid())
+  blockerId     String
+  blockedUserId String
+  applicationId String?
+  reason        String?
+  createdAt     DateTime           @default(now())
+  blocker       User               @relation("UserBlocksMade", fields: [blockerId], references: [id], onDelete: Cascade)
+  blockedUser   User               @relation("UserBlocksReceived", fields: [blockedUserId], references: [id], onDelete: Cascade)
+  application   MeetupApplication? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+
+  @@unique([blockerId, blockedUserId])
+  @@index([blockedUserId])
+  @@index([applicationId])
+}
+
+model Escrow {
+  id                   String            @id @default(cuid())
+  applicationId        String            @unique
+  status               EscrowStatus      @default(CREATED)
+  ownerAddress         String
+  destinationAddress   String
+  offerSequence        Int
+  lockedDorriAmount    Decimal           @db.Decimal(18, 6)
+  amountDrops          String?
+  condition            String?
+  fulfillmentEncrypted String?
+  createTxHash         String            @unique
+  finishTxHash         String?           @unique
+  cancelTxHash         String?           @unique
+  explorerUrl          String?
+  finishAfter          DateTime?
+  cancelAfter          DateTime?
+  createdAt            DateTime          @default(now())
+  finishedAt           DateTime?
+  canceledAt           DateTime?
+  updatedAt            DateTime          @updatedAt
+  application          MeetupApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([ownerAddress, offerSequence])
+  @@index([status])
+}
+
+model Review {
+  id            String            @id @default(cuid())
+  applicationId String            @unique
+  meetupId      String
+  userId        String
+  rating        Int
+  tags          String[]
+  comment       String?
+  createdAt     DateTime          @default(now())
+  application   MeetupApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  meetup        Meetup            @relation(fields: [meetupId], references: [id])
+  user          User              @relation(fields: [userId], references: [id])
+
+  @@index([meetupId])
+  @@index([userId])
+}
+
+model Settlement {
+  id                 String            @id @default(cuid())
+  applicationId      String            @unique
+  meetupId           String
+  status             SettlementStatus  @default(PENDING)
+  reason             SettlementReason
+  escrowFinishTxHash String?
+  createdAt          DateTime          @default(now())
+  completedAt        DateTime?
+  failedAt           DateTime?
+  updatedAt          DateTime          @updatedAt
+  application        MeetupApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  meetup             Meetup            @relation(fields: [meetupId], references: [id])
+  lines              SettlementLine[]
+
+  @@index([meetupId])
+  @@index([status])
+}
+
+model SettlementLine {
+  id               String             @id @default(cuid())
+  settlementId     String
+  type             SettlementLineType
+  recipientAddress String
+  amountDorri      Decimal            @db.Decimal(18, 6)
+  txHash           String?
+  status           LedgerTxStatus     @default(PENDING)
+  createdAt        DateTime           @default(now())
+  completedAt      DateTime?
+  settlement       Settlement         @relation(fields: [settlementId], references: [id], onDelete: Cascade)
+
+  @@index([settlementId])
+  @@index([txHash])
+}
+
+model LedgerTx {
+  id          String         @id @default(cuid())
+  userId      String?
+  txHash      String         @unique
+  txType      LedgerTxType
+  status      LedgerTxStatus @default(PENDING)
+  rawJson     Json?
+  createdAt   DateTime       @default(now())
+  validatedAt DateTime?
+  user        User?          @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([txType, status])
+}
+
+model DorriCharge {
+  id            String            @id @default(cuid())
+  userId        String
+  quoteId       String?           @unique
+  amount        Decimal           @db.Decimal(18, 6)
+  fiatCurrency  String?
+  fiatAmount    Decimal?          @db.Decimal(18, 6)
+  rateToUsd     Decimal?          @db.Decimal(18, 6)
+  dorriAmount   Decimal?          @db.Decimal(18, 6)
+  paymentTxHash String?
+  status        DorriChargeStatus @default(PENDING)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  user          User              @relation(fields: [userId], references: [id])
+  quote         DorriChargeQuote? @relation(fields: [quoteId], references: [id])
+
+  @@index([userId])
+}
+
+model DorriChargeQuote {
+  id           String       @id @default(cuid())
+  userId       String
+  fiatCurrency String
+  fiatAmount   Decimal      @db.Decimal(18, 6)
+  rateToUsd    Decimal      @db.Decimal(18, 6)
+  dorriAmount  Decimal      @db.Decimal(18, 6)
+  expiresAt    DateTime
+  consumedAt   DateTime?
+  createdAt    DateTime     @default(now())
+  user         User         @relation(fields: [userId], references: [id])
+  charge       DorriCharge?
+
+  @@index([userId])
+  @@index([expiresAt])
+}
