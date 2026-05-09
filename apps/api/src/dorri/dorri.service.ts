@@ -125,6 +125,23 @@ export class DorriService {
     };
   }
 
+  async getRates() {
+    const currencies = ['USD', 'KRW', 'JPY'];
+    const rates = await Promise.all(
+      currencies.map(async (currency) => ({
+        currency,
+        fiatPerDorri: this.formatDecimal(await this.getFiatPerUsdRate(currency)),
+      })),
+    );
+
+    return {
+      base: 'DORRI',
+      usdPerDorri: '1',
+      rates,
+      updatedAt: new Date().toISOString(),
+    };
+  }
+
   async createChargeQuote(userId: string, dto: CreateChargeQuoteDto) {
     const fiatCurrency = dto.fiatCurrency.toUpperCase();
     const fiatAmount = new Prisma.Decimal(dto.fiatAmount);

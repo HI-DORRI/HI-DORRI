@@ -18,4 +18,9 @@ export class WalletsController {
   me(@CurrentUser() user: AuthUser) {
     return this.walletsService.getMyWallet(user.userId);
   }
+
+  @Get('ledger-txs')
+  ledgerTxs(@CurrentUser() user: AuthUser) {
+    return this.walletsService.getMyLedgerTxs(user.userId);
+  }
 }

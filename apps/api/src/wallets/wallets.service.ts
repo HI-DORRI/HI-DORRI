@@ -104,6 +104,26 @@ export class WalletsService {
     };
   }
 
+  async getMyLedgerTxs(userId: string) {
+    const txs = await this.prisma.ledgerTx.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    });
+
+    return {
+      transactions: txs.map((tx) => ({
+        id: tx.id,
+        txHash: tx.txHash,
+        txType: tx.txType,
+        status: tx.status,
+        createdAt: tx.createdAt.toISOString(),
+        validatedAt: tx.validatedAt?.toISOString() ?? null,
+        explorerUrl: `https://testnet.xrpl.org/transactions/${tx.txHash}`,
+      })),
+    };
+  }
+
   private async createFundedWallet() {
     try {
       return await this.xrplService.createFundedWallet();

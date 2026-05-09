@@ -1,9 +1,10 @@
 ﻿'use client'
-import { useState } from 'react'
-import { Plus, ArrowLeftRight, ArrowDownLeft, ArrowUpRight, ChevronRight } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Plus, ArrowLeftRight, ArrowDownLeft, ArrowUpRight, ChevronRight, Copy } from 'lucide-react'
 import Link from 'next/link'
 import BottomNav from '@/components/BottomNav'
 import { useLang } from '@/components/LangContext'
+import { getLedgerTxs, getWalletSummary, type LedgerTx } from '@/lib/domain'
 
 const t = {
   KOR: {
@@ -32,26 +33,60 @@ const t = {
   }
 }
 
-const transactions = [
-  { type: 'charge', desc: { KOR: '카드 충전', ENG: 'Card Deposit' }, amount: '+500.00', date: '2025.05.08', icon: ArrowDownLeft },
-  { type: 'send', desc: { KOR: 'Seoul Crypto Meetup 참가비', ENG: 'Seoul Crypto Meetup Fee' }, amount: '-30.00', date: '2025.05.07', icon: ArrowUpRight },
-  { type: 'settle', desc: { KOR: '밋업 종료 후 정산', ENG: 'Meetup Settlement' }, amount: '+280.00', date: '2025.05.01', icon: ArrowDownLeft },
-  { type: 'charge', desc: { KOR: '카드 충전', ENG: 'Card Deposit' }, amount: '+1000.00', date: '2025.04.28', icon: ArrowDownLeft },
-  { type: 'send', desc: { KOR: '한강 피크닉 클럽 참가비', ENG: 'Han River Picnic Fee' }, amount: '-20.00', date: '2025.04.20', icon: ArrowUpRight },
-]
+const typeMeta = {
+  WALLET_FUND: { icon: ArrowDownLeft, kind: 'charge', KOR: '지갑 생성/충전', ENG: 'Wallet funding' },
+  TRUST_SET: { icon: ArrowUpRight, kind: 'settle', KOR: 'DORRI 신뢰선 설정', ENG: 'DORRI trustline' },
+  DORRI_PAYMENT: { icon: ArrowDownLeft, kind: 'charge', KOR: 'DORRI 충전', ENG: 'DORRI charge' },
+  ESCROW_CREATE: { icon: ArrowUpRight, kind: 'send', KOR: '밋업 보증금/참가비', ENG: 'Meetup escrow' },
+  ESCROW_FINISH: { icon: ArrowDownLeft, kind: 'settle', KOR: '밋업 정산 완료', ENG: 'Meetup settled' },
+  ESCROW_CANCEL: { icon: ArrowDownLeft, kind: 'settle', KOR: '밋업 정산 취소', ENG: 'Meetup canceled' },
+  SETTLEMENT_PAYMENT: { icon: ArrowDownLeft, kind: 'settle', KOR: '정산 지급', ENG: 'Settlement payment' },
+} as const
 
 export default function WalletPage() {
   const { lang } = useLang()
   const tx = t[lang]
   const [activeTab, setActiveTab] = useState(tx.tabs[0])
+  const [wallet, setWallet] = useState<{ xrplAddress: string } | null>(null)
+  const [dorriBalance, setDorriBalance] = useState('0')
+  const [ledgerTxs, setLedgerTxs] = useState<LedgerTx[]>([])
+  const [copied, setCopied] = useState(false)
+
+  useEffect(() => {
+    getWalletSummary()
+      .then(({ wallet, dorri }) => {
+        setWallet(wallet)
+        setDorriBalance(dorri?.balance ?? '0')
+      })
+      .catch(() => undefined)
+    getLedgerTxs().then(setLedgerTxs).catch(() => setLedgerTxs([]))
+  }, [])
+
+  const rows = ledgerTxs.map((item) => {
+    const meta = typeMeta[item.txType as keyof typeof typeMeta] ?? { icon: ArrowUpRight, kind: 'settle', KOR: item.txType, ENG: item.txType }
+    return {
+      ...item,
+      type: meta.kind,
+      desc: meta[lang],
+      icon: meta.icon,
+      date: new Date(item.validatedAt ?? item.createdAt).toLocaleDateString(lang === 'KOR' ? 'ko-KR' : 'en-US'),
+    }
+  })
 
   const filtered = activeTab === tx.tabs[0]
-    ? transactions
-    : transactions.filter(t =>
-        activeTab === tx.tabs[1] ? t.type === 'charge'
-        : activeTab === tx.tabs[2] ? t.type === 'send'
-        : t.type === 'settle'
+    ? rows
+    : rows.filter(item =>
+        activeTab === tx.tabs[1] ? item.type === 'charge'
+        : activeTab === tx.tabs[2] ? item.type === 'send'
+        : item.type === 'settle'
       )
+
+  async function copyAddress() {
+    if (!wallet?.xrplAddress) return
+    await navigator.clipboard.writeText(wallet.xrplAddress)
+    setCopied(true)
+    window.setTimeout(() => setCopied(false), 1200)
+  }
 
   return (
     <div className="app-shell bg-gray-50 min-h-dvh pb-24 md:min-h-screen md:bg-[#F6F3FF] md:px-10 md:pb-12 md:pt-28">
@@ -64,7 +99,7 @@ export default function WalletPage() {
         <div className="absolute right-0 top-20 h-28 w-28 rounded-full bg-white/10" />
         <div className="relative">
           <p className="text-[13px] font-semibold text-white/80 md:text-base">{tx.balance}</p>
-          <p className="mt-2 text-[32px] font-black text-white leading-none md:text-6xl">3,550.00</p>
+          <p className="mt-2 text-[32px] font-black text-white leading-none md:text-6xl">{Number(dorriBalance).toLocaleString()}</p>
           <p className="text-[14px] font-bold text-white/80 mt-1 md:text-lg">DORRI</p>
           <div className="flex gap-3 mt-6 md:mt-8 md:max-w-lg">
             <Link href="/wallet/add-funds"
@@ -81,9 +116,11 @@ export default function WalletPage() {
       <div className="mx-5 mt-4 bg-white rounded-2xl p-4 border border-gray-100 flex items-center justify-between md:mx-0 md:mt-6 md:p-6 md:shadow-sm">
         <div>
           <p className="text-[11px] text-gray-400 font-medium">{tx.address}</p>
-          <p className="text-[12px] font-mono text-gray-700 mt-0.5">0x7f3a...b9c2e1d4</p>
+          <p className="text-[12px] font-mono text-gray-700 mt-0.5">{wallet?.xrplAddress ?? '-'}</p>
         </div>
-        <button className="text-[11px] font-bold text-[#7B5CF6] bg-purple-50 px-3 py-1.5 rounded-full">{tx.copy}</button>
+        <button onClick={copyAddress} className="flex items-center gap-1 text-[11px] font-bold text-[#7B5CF6] bg-purple-50 px-3 py-1.5 rounded-full">
+          <Copy size={12} />{copied ? (lang === 'KOR' ? '복사됨' : 'Copied') : tx.copy}
+        </button>
       </div>
 
         </section>
@@ -100,22 +137,27 @@ export default function WalletPage() {
           ))}
         </div>
         <div className="flex flex-col gap-2 md:gap-3">
-          {filtered.map((tx, i) => (
-            <div key={i} className="bg-white rounded-2xl p-4 flex items-center gap-3 border border-gray-100 md:p-5">
+          {filtered.map((item) => (
+            <div key={item.id} className="bg-white rounded-2xl p-4 flex items-center gap-3 border border-gray-100 md:p-5">
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0
-                ${tx.type === 'send' ? 'bg-red-50' : 'bg-green-50'}`}>
-                <tx.icon size={18} className={tx.type === 'send' ? 'text-red-400' : 'text-green-500'} />
+                ${item.type === 'send' ? 'bg-red-50' : 'bg-green-50'}`}>
+                <item.icon size={18} className={item.type === 'send' ? 'text-red-400' : 'text-green-500'} />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[13px] font-bold text-[#232129] truncate">{tx.desc[lang as 'KOR' | 'ENG']}</p>
-                <p className="text-[11px] text-gray-400 mt-0.5">{tx.date}</p>
+                <p className="text-[13px] font-bold text-[#232129] truncate">{item.desc}</p>
+                <p className="text-[11px] text-gray-400 mt-0.5">{item.date} · {shortHash(item.txHash)}</p>
               </div>
               <div className="text-right">
-                <p className={`text-[14px] font-black ${tx.type === 'send' ? 'text-red-500' : 'text-green-600'}`}>{tx.amount}</p>
-                <p className="text-[10px] text-gray-400">DORRI</p>
+                <p className={`text-[12px] font-black ${item.status === 'VALIDATED' ? 'text-green-600' : 'text-gray-500'}`}>{item.status}</p>
+                <p className="text-[10px] text-gray-400">XRPL</p>
               </div>
             </div>
           ))}
+          {filtered.length === 0 && (
+            <div className="rounded-2xl border border-gray-100 bg-white p-8 text-center text-[13px] font-semibold text-gray-400">
+              {lang === 'KOR' ? '거래 내역이 없어요.' : 'No transactions yet.'}
+            </div>
+          )}
         </div>
         <button className="w-full mt-3 py-3 rounded-2xl border-2 border-gray-200 text-[13px] font-bold text-gray-500 flex items-center justify-center gap-1 md:mt-5 md:h-12 md:text-sm">
           {t[lang].more} <ChevronRight size={14} />
@@ -126,5 +168,9 @@ export default function WalletPage() {
       <BottomNav />
     </div>
   )
+}
+
+function shortHash(hash: string) {
+  return `${hash.slice(0, 6)}...${hash.slice(-6)}`
 }
 

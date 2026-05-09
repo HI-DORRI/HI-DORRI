@@ -1,9 +1,11 @@
 ﻿'use client'
+import { useEffect, useState } from 'react'
 import { ArrowLeftRight, Bell, Menu, Plus, WalletCards } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import BottomNav from '@/components/BottomNav'
 import { useLang } from '@/components/LangContext'
+import { getHome, refreshDorriBalance, type HomeData } from '@/lib/domain'
 
 const t = {
   KOR: {
@@ -14,9 +16,9 @@ const t = {
     exchange: '송금하기',
     quickStart: '빠른 시작',
     quickActions: [
-      { label: '충전하기', emoji: '$' },
-      { label: '탐색하기', emoji: 'Q' },
-      { label: '프로필 설정', emoji: 'U' },
+      { label: '충전하기', emoji: '$', href: '/wallet/add-funds' },
+      { label: '탐색하기', emoji: 'Q', href: '/meetups' },
+      { label: '프로필 설정', emoji: 'U', href: '/profile' },
     ],
     myMeetups: '내 밋업',
     seeAll: '전체보기 ->',
@@ -34,9 +36,9 @@ const t = {
     exchange: 'Exchange',
     quickStart: 'Quick Start',
     quickActions: [
-      { label: 'Add Funds', emoji: '$' },
-      { label: 'Explore', emoji: 'Q' },
-      { label: 'Set your Profile', emoji: 'U' },
+      { label: 'Add Funds', emoji: '$', href: '/wallet/add-funds' },
+      { label: 'Explore', emoji: 'Q', href: '/meetups' },
+      { label: 'Set your Profile', emoji: 'U', href: '/profile' },
     ],
     myMeetups: 'My Meetups',
     seeAll: 'See All ->',
@@ -51,6 +53,24 @@ const t = {
 export default function HomePage() {
   const { lang } = useLang()
   const tx = t[lang]
+  const [home, setHome] = useState<HomeData | null>(null)
+
+  useEffect(() => {
+    getHome()
+      .then((data) => {
+        setHome(data)
+        return refreshDorriBalance(2, 1000)
+      })
+      .then((dorri) => {
+        setHome((current) => current ? { ...current, dorri } : current)
+      })
+      .catch(() => setHome(null))
+  }, [])
+
+  const name = home?.user.name ?? 'Sarah'
+  const balance = home?.dorri?.balance ?? '0'
+  const reviewMeetup = home?.myMeetups.find((item) => item.status === 'CHECKED_IN' && item.meetup.status === 'CLOSED')
+  const myMeetup = reviewMeetup ?? home?.myMeetups[0]
 
   return (
     <main className="app-shell min-h-screen bg-white pb-32 text-[#202024] md:bg-[#F6F3FF] md:px-10 md:pb-12 md:pt-28">
@@ -70,12 +90,12 @@ export default function HomePage() {
         {/* Greeting */}
         <div className="flex items-center justify-between mt-5 md:col-span-2 md:mt-0 md:rounded-[28px] md:bg-white md:p-8 md:shadow-[0_14px_34px_rgba(44,35,77,0.07)]">
           <div>
-            <h1 className="text-[22px] font-black text-[#232129] md:text-4xl">{tx.greeting}</h1>
+            <h1 className="text-[22px] font-black text-[#232129] md:text-4xl">{lang === 'KOR' ? `안녕하세요, ${name}!` : `Hi, ${name}!`}</h1>
             <p className="text-[13px] text-[#4f4a5f] mt-0.5 md:mt-2 md:text-base">{tx.subtitle}</p>
           </div>
           <div className="relative h-11 w-11 overflow-hidden rounded-full border-[3px] border-[#7B5CF6]">
             <Image
-              src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80"
+              src={home?.user.profileImageUrl ?? 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80'}
               alt="profile" fill sizes="44px" className="object-cover" />
           </div>
         </div>
@@ -87,7 +107,7 @@ export default function HomePage() {
           <div className="absolute right-[-10px] top-16 h-32 w-32 rounded-full bg-white/10" />
           <div className="relative md:flex md:min-h-[186px] md:flex-col md:justify-between">
             <p className="text-[13px] font-semibold text-white/80 md:text-base">{tx.walletLabel}</p>
-            <p className="mt-2 text-[32px] font-black leading-none md:text-5xl">0 DORRI</p>
+            <p className="mt-2 text-[32px] font-black leading-none md:text-5xl">{Number(balance).toLocaleString()} DORRI</p>
             <div className="mt-6 flex gap-3 md:max-w-lg">
               <Link href="/wallet/add-funds"
                 className="flex h-11 flex-1 items-center justify-center gap-2 rounded-full bg-white text-[13px] font-bold text-[#7446D8] md:h-12 md:text-sm">
@@ -106,11 +126,11 @@ export default function HomePage() {
           <div className="rounded-2xl border border-[#E6DAFF] bg-[#FBFAFF] px-4 py-5 md:border-none md:bg-transparent md:p-0">
             <div className="grid grid-cols-3 gap-2 md:grid-cols-1 md:gap-3">
               {tx.quickActions.map((action, i) => (
-                <button key={i}
+                <Link key={i} href={action.href}
                   className="flex flex-col items-center justify-center gap-2 h-[78px] rounded-xl border border-[#E9DFFF] bg-[#F4F0FF] md:h-[92px]">
                   <span className="text-2xl">{action.emoji}</span>
                   <span className="text-[10px] font-medium leading-tight text-[#25232D] text-center">{action.label}</span>
-                </button>
+                </Link>
               ))}
             </div>
           </div>
@@ -124,11 +144,13 @@ export default function HomePage() {
           </div>
           <div className="flex flex-col items-center justify-center rounded-2xl border border-[#D9D1EA] bg-[#FBFAFF] px-8 py-10 text-center">
             <WalletCards size={25} className="mb-3 text-[#D6CCE9]" />
-            <p className="text-[13px] font-black text-[#232129]">{tx.noMeetup}</p>
-            <p className="mt-2 text-[12px] font-medium leading-relaxed text-[#656070]">{tx.noMeetupDesc}</p>
-            <Link href="/meetups"
+            <p className="text-[13px] font-black text-[#232129]">{reviewMeetup ? '리뷰를 작성해 주세요' : myMeetup?.meetup.title ?? tx.noMeetup}</p>
+            <p className="mt-2 text-[12px] font-medium leading-relaxed text-[#656070]">
+              {reviewMeetup ? `${reviewMeetup.meetup.title} 밋업이 종료되었어요.` : myMeetup ? new Date(myMeetup.meetup.startsAt).toLocaleDateString() : tx.noMeetupDesc}
+            </p>
+            <Link href={reviewMeetup ? `/meetups/${reviewMeetup.meetup.id}/review` : myMeetup ? `/meetups/${myMeetup.meetup.id}` : '/meetups'}
               className="mt-5 h-11 rounded-full bg-[#6F3FD7] px-8 text-[13px] font-bold text-white flex items-center justify-center">
-              {tx.exploreMeetups}
+              {reviewMeetup ? '리뷰 작성하기' : tx.exploreMeetups}
             </Link>
           </div>
         </div>

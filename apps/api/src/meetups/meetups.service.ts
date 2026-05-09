@@ -136,7 +136,6 @@ export class MeetupsService {
     const meetup = await this.prisma.meetup.findFirst({
       where: {
         id,
-        status: MeetupStatus.PUBLISHED,
       },
       include: {
         organizer: {
@@ -485,7 +484,8 @@ export class MeetupsService {
     amountDorri: string;
     issuer: string;
   }) {
-    const finishAfter = new Date(Date.now() + this.getEscrowFinishAfterSeconds() * 1000);
+    const finishAfterSeconds = this.getEscrowFinishAfterSeconds();
+    const finishAfter = finishAfterSeconds > 0 ? new Date(Date.now() + finishAfterSeconds * 1000) : undefined;
     const cancelAfter = new Date(Date.now() + this.getEscrowCancelAfterSeconds() * 1000);
 
     try {
@@ -495,7 +495,7 @@ export class MeetupsService {
         destination: params.destination,
         amount: params.amountDorri,
         issuer: params.issuer,
-        finishAfterRippleTime: this.toRippleTime(finishAfter),
+        finishAfterRippleTime: finishAfter ? this.toRippleTime(finishAfter) : undefined,
         cancelAfterRippleTime: this.toRippleTime(cancelAfter),
       });
 
@@ -541,7 +541,7 @@ export class MeetupsService {
   }
 
   private getEscrowFinishAfterSeconds() {
-    return this.config.get<number>('XRPL_ESCROW_FINISH_AFTER_SECONDS') ?? 60;
+    return this.config.get<number>('XRPL_ESCROW_FINISH_AFTER_SECONDS') ?? 0;
   }
 
   private getEscrowCancelAfterSeconds() {
