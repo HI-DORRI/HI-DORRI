@@ -37,10 +37,10 @@ const typeMeta = {
   WALLET_FUND: { icon: ArrowDownLeft, kind: 'charge', KOR: '지갑 생성/충전', ENG: 'Wallet funding' },
   TRUST_SET: { icon: ArrowUpRight, kind: 'settle', KOR: 'DORRI 신뢰선 설정', ENG: 'DORRI trustline' },
   DORRI_PAYMENT: { icon: ArrowDownLeft, kind: 'charge', KOR: 'DORRI 충전', ENG: 'DORRI charge' },
-  ESCROW_CREATE: { icon: ArrowUpRight, kind: 'send', KOR: '밋업 보증금/참가비', ENG: 'Meetup escrow' },
-  ESCROW_FINISH: { icon: ArrowDownLeft, kind: 'settle', KOR: '밋업 정산 완료', ENG: 'Meetup settled' },
-  ESCROW_CANCEL: { icon: ArrowDownLeft, kind: 'settle', KOR: '밋업 정산 취소', ENG: 'Meetup canceled' },
-  SETTLEMENT_PAYMENT: { icon: ArrowDownLeft, kind: 'settle', KOR: '정산 지급', ENG: 'Settlement payment' },
+  ESCROW_CREATE: { icon: ArrowUpRight, kind: 'send', KOR: '밋업 참가비/보증금 잠금', ENG: 'Meetup fee/deposit locked' },
+  ESCROW_FINISH: { icon: ArrowDownLeft, kind: 'settle', KOR: '밋업 정산 완료', ENG: 'Meetup settlement completed' },
+  ESCROW_CANCEL: { icon: ArrowDownLeft, kind: 'settle', KOR: '밋업 신청 취소/환불', ENG: 'Meetup canceled/refunded' },
+  SETTLEMENT_PAYMENT: { icon: ArrowDownLeft, kind: 'settle', KOR: '밋업 정산 지급 처리', ENG: 'Meetup settlement payout' },
 } as const
 
 export default function WalletPage() {
@@ -138,7 +138,7 @@ export default function WalletPage() {
         </div>
         <div className="flex flex-col gap-2 md:gap-3">
           {filtered.map((item) => (
-            <div key={item.id} className="bg-white rounded-2xl p-4 flex items-center gap-3 border border-gray-100 md:p-5">
+            <a key={item.id} href={item.explorerUrl} target="_blank" rel="noreferrer" className="bg-white rounded-2xl p-4 flex items-center gap-3 border border-gray-100 transition hover:border-purple-200 hover:shadow-sm md:p-5">
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0
                 ${item.type === 'send' ? 'bg-red-50' : 'bg-green-50'}`}>
                 <item.icon size={18} className={item.type === 'send' ? 'text-red-400' : 'text-green-500'} />
@@ -151,7 +151,7 @@ export default function WalletPage() {
                 <p className={`text-[12px] font-black ${item.status === 'VALIDATED' ? 'text-green-600' : 'text-gray-500'}`}>{item.status}</p>
                 <p className="text-[10px] text-gray-400">XRPL</p>
               </div>
-            </div>
+            </a>
           ))}
           {filtered.length === 0 && (
             <div className="rounded-2xl border border-gray-100 bg-white p-8 text-center text-[13px] font-semibold text-gray-400">

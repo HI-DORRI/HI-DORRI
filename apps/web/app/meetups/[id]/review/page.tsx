@@ -19,6 +19,7 @@ import {
 
 const reviewableStatuses = ['CHECKED_IN', 'NO_SHOW', 'REVIEWED', 'SETTLED']
 const attendedStatuses = ['CHECKED_IN', 'REVIEWED', 'SETTLED']
+const reviewableSettlementReasons = ['FREE_ATTENDED', 'FREE_NO_SHOW', 'PAID_ATTENDED', 'PAID_NO_SHOW']
 
 export default function ReviewPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
@@ -38,7 +39,11 @@ export default function ReviewPage({ params }: { params: Promise<{ id: string }>
 
   const isOrganizer = Boolean(me && meetup?.host.id === me.id)
   const reviewableApplications = useMemo(
-    () => applications.filter((item) => reviewableStatuses.includes(item.status)),
+    () => applications.filter((item) => {
+      if (!reviewableStatuses.includes(item.status)) return false
+      if (item.status !== 'SETTLED') return true
+      return Boolean(item.settlement && reviewableSettlementReasons.includes(item.settlement.reason))
+    }),
     [applications],
   )
   const filteredApplications = reviewableApplications.filter((item) =>
@@ -292,6 +297,26 @@ function OrganizerReviewPanel(props: {
           />
         ))}
         {props.applications.length === 0 && <p className="rounded-2xl border border-gray-100 p-8 text-center text-sm font-semibold text-gray-400">평가할 참가자가 없어요.</p>}
+      </div>
+
+      <div className="mt-8 rounded-2xl border border-gray-100 bg-[#FBFAFF] p-5">
+        <h3 className="text-[15px] font-black text-[#232129]">참가자가 남긴 밋업 리뷰</h3>
+        <div className="mt-4 flex flex-col gap-3">
+          {props.applications.filter((application) => application.participantReview).map((application) => (
+            <div key={application.id} className="rounded-xl bg-white p-4">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-[13px] font-bold text-[#232129]">{application.participant.name}</p>
+                <StarRating value={application.participantReview?.rating ?? 0} onChange={() => undefined} size={14} />
+              </div>
+              {application.participantReview?.comment && (
+                <p className="mt-2 text-[12px] leading-relaxed text-gray-500">{application.participantReview.comment}</p>
+              )}
+            </div>
+          ))}
+          {props.applications.every((application) => !application.participantReview) && (
+            <p className="rounded-xl bg-white p-4 text-center text-[12px] font-semibold text-gray-400">아직 참가자 리뷰가 없어요.</p>
+          )}
+        </div>
       </div>
     </section>
   )

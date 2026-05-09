@@ -232,6 +232,10 @@ export class ApplicationsService {
         ...application,
         status: ApplicationStatus.CANCELED,
       },
+      policyStatus:
+        application.status === ApplicationStatus.PENDING_APPROVAL
+          ? ApplicationStatus.REJECTED
+          : ApplicationStatus.CANCELED,
       finalStatus: ApplicationStatus.CANCELED,
       settledAt: new Date(),
       statusTimestamps: { canceledAt: new Date() },
@@ -523,6 +527,7 @@ export class ApplicationsService {
 
   private async executeSettlement(params: {
     application: Awaited<ReturnType<ApplicationsService['getSettleApplication']>>;
+    policyStatus?: ApplicationStatus;
     finalStatus: ApplicationStatus;
     settledAt: Date;
     statusTimestamps: Partial<Pick<Prisma.MeetupApplicationUpdateInput, 'canceledAt'>>;
@@ -542,7 +547,7 @@ export class ApplicationsService {
         : await this.finishEscrow(application.escrow);
     const policy = this.settlementPolicy.resolve({
       meetupType: application.meetup.type,
-      applicationStatus: application.status,
+      applicationStatus: params.policyStatus ?? application.status,
       lockedDorriAmount: application.lockedDorriAmount,
       startsAt: application.meetup.startsAt,
       now: settledAt,

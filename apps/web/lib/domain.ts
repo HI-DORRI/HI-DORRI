@@ -77,6 +77,8 @@ export type OrganizerApplication = {
     xrplAddress: string | null
   }
   escrow: { status: string; createTxHash: string } | null
+  settlement: { reason: string } | null
+  participantReview: { id: string; rating: number; comment: string | null; createdAt: string } | null
   organizerEvaluation: { id: string; rating: number; blocked: boolean; createdAt: string } | null
 }
 
@@ -128,6 +130,10 @@ export function getMeetup(id: string) {
 
 export function applyMeetup(id: string) {
   return apiFetch(`/meetups/${id}/apply`, { method: 'POST' })
+}
+
+export function cancelApplication(applicationId: string) {
+  return apiFetch(`/applications/${applicationId}/cancel`, { method: 'POST' })
 }
 
 export async function getOrganizerApplications(meetupId: string) {

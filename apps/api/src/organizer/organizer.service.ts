@@ -78,6 +78,19 @@ export class OrganizerService {
             createTxHash: true,
           },
         },
+        review: {
+          select: {
+            id: true,
+            rating: true,
+            comment: true,
+            createdAt: true,
+          },
+        },
+        settlement: {
+          select: {
+            reason: true,
+          },
+        },
         organizerEvaluation: {
           select: {
             id: true,
@@ -109,6 +122,19 @@ export class OrganizerService {
           ? {
               status: application.escrow.status,
               createTxHash: application.escrow.createTxHash,
+            }
+          : null,
+        settlement: application.settlement
+          ? {
+              reason: application.settlement.reason,
+            }
+          : null,
+        participantReview: application.review
+          ? {
+              id: application.review.id,
+              rating: application.review.rating,
+              comment: application.review.comment,
+              createdAt: application.review.createdAt.toISOString(),
             }
           : null,
         organizerEvaluation: application.organizerEvaluation
