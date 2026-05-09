@@ -79,7 +79,7 @@ export default function HomePage() {
         <button aria-label="Open menu">
           <Menu size={22} strokeWidth={2.4} className="text-[#232129]" />
         </button>
-        <Image src="/images/small logo2.png" alt="HI-DORRI" width={72} height={30} priority className="h-auto w-[72px]" />
+        <Image src="/images/small logo2.png" alt="HI-DORRI" width={72} height={30} priority style={{ height: 'auto' }} />
         <button aria-label="Notifications" className="relative">
           <Bell size={22} strokeWidth={2.2} className="text-[#232129]" />
           <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[9px] text-white flex items-center justify-center font-bold">1</span>

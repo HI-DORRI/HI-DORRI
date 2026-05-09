@@ -84,7 +84,7 @@ export default function LoginPage() {
             <button onClick={() => router.back()} className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F8F5FF]">
               <ArrowLeft size={20} />
             </button>
-            <Image src="/images/small logo2.png" alt="HI-DORRI" width={76} height={32} className="h-auto w-[76px] md:hidden" />
+            <Image src="/images/small logo2.png" alt="HI-DORRI" width={76} height={32} className="md:hidden" style={{ height: 'auto' }} />
             <div className="h-10 w-10" />
           </div>
 

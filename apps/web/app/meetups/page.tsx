@@ -14,6 +14,7 @@ const t = {
       { label: '종료됨', status: 'CLOSED' },
     ],
     tags: ['전체', '언어교환', '아웃도어', '게임', '스포츠', '문화'],
+    createMeetup: '밋업 생성',
   },
   ENG: {
     title: 'Explore Meetups',
@@ -23,6 +24,7 @@ const t = {
       { label: 'Closed', status: 'CLOSED' },
     ],
     tags: ['All', 'Language', 'Outdoor', 'Games', 'Sports', 'Culture'],
+    createMeetup: 'Create Meetup',
   }
 }
 
@@ -77,7 +79,7 @@ export default function Meetups() {
             href="/meetups/create"
             className="mt-4 hidden h-12 items-center justify-center rounded-xl bg-[#7B5CF6] px-6 text-sm font-bold text-white shadow-[0_12px_24px_rgba(123,92,246,0.22)] md:flex"
           >
-            Create Meetup
+            {tx.createMeetup}
           </Link>
         </div>
         <div className="md:mx-auto md:max-w-6xl md:px-8">
@@ -86,7 +88,7 @@ export default function Meetups() {
         </div>
       </div>
 
-      <div className="px-5 pt-4 flex gap-2 md:mx-auto md:max-w-6xl md:px-8">
+      <div className="px-5 pt-4 flex items-center gap-2 md:mx-auto md:max-w-6xl md:px-8">
         {tx.statusTabs.map((tab) => (
           <button
             key={tab.status}
@@ -98,6 +100,12 @@ export default function Meetups() {
             {tab.label}
           </button>
         ))}
+        <Link
+          href="/meetups/create"
+          className="ml-auto flex h-10 shrink-0 items-center justify-center rounded-xl border border-[#7B5CF6] bg-white px-4 text-sm font-bold text-[#7B5CF6] shadow-sm md:hidden"
+        >
+          {tx.createMeetup}
+        </Link>
       </div>
 
       <div className="px-5 pt-3 flex gap-2 overflow-x-auto pb-2 md:mx-auto md:max-w-6xl md:px-8 md:pt-2" style={{ scrollbarWidth: 'none' }}>

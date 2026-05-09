@@ -21,7 +21,7 @@ export default function BottomNav() {
       <nav className="fixed left-0 top-0 z-50 hidden w-full border-b border-[#E9E3F4] bg-white/90 backdrop-blur md:block">
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-8">
           <Link href="/home" className="flex items-center">
-            <Image src="/images/small logo2.png" alt="HI-DORRI" width={78} height={32} className="h-auto w-[78px]" />
+            <Image src="/images/small logo2.png" alt="HI-DORRI" width={78} height={32} style={{ height: 'auto' }} />
           </Link>
           <div className="flex items-center gap-2">
             {tabs.map(({ href, label, icon: Icon }) => {
