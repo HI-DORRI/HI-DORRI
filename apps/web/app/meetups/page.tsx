@@ -1,37 +1,69 @@
 ﻿'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import BottomNav from '@/components/BottomNav'
 import { useLang } from '@/components/LangContext'
+import { getMeetups, type MeetupListItem } from '@/lib/domain'
 
 const t = {
   KOR: {
     title: '밋업 탐색',
     searchPlaceholder: '밋업 검색',
+    statusTabs: [
+      { label: '진행중', status: 'PUBLISHED' },
+      { label: '종료됨', status: 'CLOSED' },
+    ],
     tags: ['전체', '언어교환', '아웃도어', '게임', '스포츠', '문화'],
   },
   ENG: {
     title: 'Explore Meetups',
-    searchPlaceholder: '?뵇  Search meetups',
+    searchPlaceholder: 'Search meetups',
+    statusTabs: [
+      { label: 'Active', status: 'PUBLISHED' },
+      { label: 'Closed', status: 'CLOSED' },
+    ],
     tags: ['All', 'Language', 'Outdoor', 'Games', 'Sports', 'Culture'],
   }
 }
-
-const meetups = [
-  { id: '1', title: { KOR: '서울 언어교환 모임', ENG: 'Seoul Language Exchange' }, tag: { KOR: '언어교환', ENG: 'Language' }, members: 12, date: '5월 10일', emoji: 'A', loc: { KOR: '마포구', ENG: 'Mapo-gu' } },
-  { id: '2', title: { KOR: '한강 피크닉 클럽', ENG: 'Han River Picnic Club' }, tag: { KOR: '아웃도어', ENG: 'Outdoor' }, members: 8, date: '5월 12일', emoji: 'P', loc: { KOR: '영등포구', ENG: 'Yeongdeungpo' } },
-  { id: '3', title: { KOR: '홍대 보드게임 나이트', ENG: 'Hongdae Board Game Night' }, tag: { KOR: '게임', ENG: 'Games' }, members: 6, date: '5월 14일', emoji: 'G', loc: { KOR: '마포구', ENG: 'Mapo-gu' } },
-  { id: '4', title: { KOR: '강남 러닝 크루', ENG: 'Gangnam Running Crew' }, tag: { KOR: '스포츠', ENG: 'Sports' }, members: 20, date: '5월 15일', emoji: 'R', loc: { KOR: '강남구', ENG: 'Gangnam-gu' } },
-]
 
 export default function Meetups() {
   const { lang } = useLang()
   const tx = t[lang]
   const [activeTag, setActiveTag] = useState(tx.tags[0])
+  const [activeStatus, setActiveStatus] = useState(tx.statusTabs[0].status)
+  const [apiMeetups, setApiMeetups] = useState<MeetupListItem[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState('')
 
-  const filtered = activeTag === tx.tags[0]
-    ? meetups
-    : meetups.filter(m => m.tag[lang] === activeTag)
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      setIsLoading(true)
+      getMeetups(activeStatus)
+        .then((meetups) => {
+          setApiMeetups(meetups)
+          setError('')
+        })
+        .catch((error) => {
+          setApiMeetups([])
+          setError(error instanceof Error ? error.message : '밋업을 불러오지 못했어요.')
+        })
+        .finally(() => setIsLoading(false))
+    }, 0)
+
+    return () => window.clearTimeout(timeout)
+  }, [activeStatus])
+
+  const sourceMeetups = apiMeetups.map((m) => ({
+        id: m.id,
+        title: { KOR: m.title, ENG: m.title },
+        tag: { KOR: m.type, ENG: m.type },
+        members: m.appliedCount,
+        date: new Date(m.startsAt).toLocaleDateString(),
+        emoji: m.type === 'PAID' ? 'P' : 'F',
+        loc: { KOR: m.locationName, ENG: m.locationName },
+      }))
+
+  const filtered = sourceMeetups
 
   return (
     <div className="app-shell bg-gray-50 pb-24 md:min-h-screen md:bg-[#F6F3FF] md:pb-12 md:pt-24">
@@ -54,6 +86,20 @@ export default function Meetups() {
         </div>
       </div>
 
+      <div className="px-5 pt-4 flex gap-2 md:mx-auto md:max-w-6xl md:px-8">
+        {tx.statusTabs.map((tab) => (
+          <button
+            key={tab.status}
+            onClick={() => setActiveStatus(tab.status)}
+            className={`h-10 rounded-xl px-5 text-sm font-bold transition ${
+              activeStatus === tab.status ? 'bg-[#7B5CF6] text-white' : 'bg-white text-gray-500 border border-gray-200'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
       <div className="px-5 pt-3 flex gap-2 overflow-x-auto pb-2 md:mx-auto md:max-w-6xl md:px-8 md:pt-2" style={{ scrollbarWidth: 'none' }}>
         {tx.tags.map(tag => (
           <button key={tag} onClick={() => setActiveTag(tag)}
@@ -65,6 +111,21 @@ export default function Meetups() {
       </div>
 
       <div className="px-5 mt-3 flex flex-col gap-3 md:mx-auto md:mt-6 md:grid md:max-w-6xl md:grid-cols-2 md:gap-5 md:px-8 lg:grid-cols-3">
+        {isLoading && (
+          <div className="rounded-3xl border border-gray-100 bg-white p-8 text-center text-sm font-semibold text-gray-400 md:col-span-2 lg:col-span-3">
+            {lang === 'KOR' ? '밋업을 불러오는 중이에요.' : 'Loading meetups.'}
+          </div>
+        )}
+        {!isLoading && error && (
+          <div className="rounded-3xl border border-red-100 bg-red-50 p-8 text-center text-sm font-semibold text-red-500 md:col-span-2 lg:col-span-3">
+            {error}
+          </div>
+        )}
+        {!isLoading && !error && filtered.length === 0 && (
+          <div className="rounded-3xl border border-gray-100 bg-white p-8 text-center text-sm font-semibold text-gray-400 md:col-span-2 lg:col-span-3">
+            {lang === 'KOR' ? '등록된 밋업이 없어요.' : 'No meetups found.'}
+          </div>
+        )}
         {filtered.map(m => (
           <Link key={m.id} href={`/meetups/${m.id}`}
             className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 flex gap-4 items-center active:scale-95 transition md:min-h-44 md:flex-col md:items-start md:justify-between md:p-6 md:shadow-[0_14px_34px_rgba(44,35,77,0.08)] md:hover:-translate-y-1">

@@ -17,6 +17,7 @@ type HomeApplication = Prisma.MeetupApplicationGetPayload<{
         title: true;
         imageUrl: true;
         startsAt: true;
+        status: true;
       };
     };
   };
@@ -63,6 +64,7 @@ export class HomeService {
               title: true,
               imageUrl: true,
               startsAt: true,
+              status: true,
             },
           },
         },
@@ -128,6 +130,7 @@ export class HomeService {
         title: application.meetup.title,
         imageUrl: application.meetup.imageUrl,
         startsAt: application.meetup.startsAt.toISOString(),
+        status: application.meetup.status,
       },
     };
   }

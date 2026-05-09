@@ -106,6 +106,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Eye, EyeOff, Check, Mail, Shield, Users } from 'lucide-react'
 import Link from 'next/link'
+import { apiFetch, setAccessToken } from '@/lib/api'
 
 type Step = 'method' | 'form' | 'verify' | 'verifying' | 'verified' | 'wallet' | 'done'
 
@@ -119,6 +120,9 @@ export default function SignupPage() {
   const router = useRouter()
   const [step, setStep] = useState<Step>('method')
   const { lang, setLang } = useLang()
+  const [error, setError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [devVerificationCode, setDevVerificationCode] = useState('')
 
   // form
   const [name, setName] = useState('')
@@ -142,6 +146,50 @@ export default function SignupPage() {
   const pwValid = Object.values(pwChecks).every(Boolean)
   const formValid = name && email && pwValid
 
+  const handleSignup = async () => {
+    if (!formValid) return
+
+    setError('')
+    setIsSubmitting(true)
+
+    try {
+      const result = await apiFetch<{ devVerificationCode?: string }>('/auth/signup', {
+        method: 'POST',
+        skipAuth: true,
+        body: { name, email, password: pw },
+      })
+
+      setDevVerificationCode(result.devVerificationCode ?? '')
+      setStep('verify')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '회원가입에 실패했습니다.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const handleVerifyEmail = async () => {
+    if (codes.some(c => !c)) return
+
+    setError('')
+    setIsSubmitting(true)
+
+    try {
+      const result = await apiFetch<{ accessToken: string }>('/auth/verify-email', {
+        method: 'POST',
+        skipAuth: true,
+        body: { email, code: codes.join('') },
+      })
+
+      setAccessToken(result.accessToken)
+      setStep('verified')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '이메일 인증에 실패했습니다.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   // 인증 로딩
   useEffect(() => {
     if (step === 'verifying') {
@@ -152,23 +200,27 @@ export default function SignupPage() {
   // 지갑 생성 애니메이션
   useEffect(() => {
     if (step === 'wallet') {
-      const t0 = setTimeout(() => {
+      const t0 = setTimeout(async () => {
         setWalletStatus(['progress', 'waiting', 'waiting'])
         setWalletStep(1)
+        setError('')
+
+        try {
+          await apiFetch('/wallets/create', { method: 'POST' })
+          setWalletStatus(['done', 'progress', 'waiting'])
+          setWalletStep(2)
+          await apiFetch('/dorri/trustline', { method: 'POST', body: { limit: '100000' } })
+          setWalletStatus(['done', 'done', 'progress'])
+          setWalletStep(3)
+          window.setTimeout(() => {
+            setWalletStatus(['done', 'done', 'done'])
+            setStep('done')
+          }, 800)
+        } catch (err) {
+          setError(err instanceof Error ? err.message : '지갑 생성에 실패했습니다.')
+        }
       }, 0)
-      const t1 = setTimeout(() => {
-        setWalletStatus(['done', 'progress', 'waiting'])
-        setWalletStep(2)
-      }, 1500)
-      const t2 = setTimeout(() => {
-        setWalletStatus(['done', 'done', 'progress'])
-        setWalletStep(3)
-      }, 3000)
-      const t3 = setTimeout(() => {
-        setWalletStatus(['done', 'done', 'done'])
-        setTimeout(() => setStep('done'), 800)
-      }, 4500)
-      return () => { clearTimeout(t0); clearTimeout(t1); clearTimeout(t2); clearTimeout(t3) }
+      return () => { clearTimeout(t0) }
     }
   }, [step])
 
@@ -285,10 +337,11 @@ export default function SignupPage() {
             ))}
           </div>
         </div>
-        <button disabled={!formValid} onClick={() => setStep('verify')}
+        {error && <p className="rounded-xl bg-red-50 px-4 py-3 text-[13px] font-semibold text-red-500">{error}</p>}
+        <button disabled={!formValid || isSubmitting} onClick={handleSignup}
           className="w-full py-4 rounded-2xl font-bold text-white text-[15px] disabled:opacity-40 mt-2"
           style={{ background: 'linear-gradient(90deg, #7B5CF6, #6D28D9)' }}>
-          {tx.continueBtn}
+          {isSubmitting ? (lang === 'KOR' ? '처리 중...' : 'Processing...') : tx.continueBtn}
         </button>
         <p className="text-center text-[12px] text-gray-400">
           {tx.haveAccount}{' '}
@@ -337,11 +390,17 @@ export default function SignupPage() {
             {lang === 'KOR' ? '코드를 받지 못하셨나요?' : "Didn't receive?"}{' '}
             <button className="text-purple-600 font-bold">{tx.resend}</button>
           </p>
+          {devVerificationCode && (
+            <p className="mt-3 rounded-xl bg-purple-50 px-4 py-3 text-center text-[12px] font-semibold text-purple-600">
+              {lang === 'KOR' ? '개발용 인증코드' : 'Dev verification code'}: {devVerificationCode}
+            </p>
+          )}
         </div>
-        <button disabled={codes.some(c => !c)} onClick={() => setStep('verifying')}
+        {error && <p className="mt-5 rounded-xl bg-red-50 px-4 py-3 text-[13px] font-semibold text-red-500">{error}</p>}
+        <button disabled={codes.some(c => !c) || isSubmitting} onClick={handleVerifyEmail}
           className="w-full py-4 rounded-2xl font-bold text-white text-[15px] disabled:opacity-40 mt-8"
           style={{ background: 'linear-gradient(90deg, #7B5CF6, #6D28D9)' }}>
-          {tx.verifyBtn}
+          {isSubmitting ? (lang === 'KOR' ? '인증 중...' : 'Verifying...') : tx.verifyBtn}
         </button>
       </div>
     </div>
@@ -412,6 +471,7 @@ if (step === 'verified') {
         <p className="text-[11px] font-black text-gray-500 uppercase tracking-wider mb-2">{tx.security}</p>
         <p className="text-[12px] text-gray-500 leading-relaxed">{tx.securityDesc}</p>
       </div>
+      {error && <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-[13px] font-semibold text-red-500">{error}</p>}
     </div>
   )}
 

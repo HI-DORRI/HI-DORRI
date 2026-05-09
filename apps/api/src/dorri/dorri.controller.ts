@@ -22,6 +22,11 @@ export class DorriController {
     return this.dorriService.getBalance(user.userId);
   }
 
+  @Get('rates')
+  getRates() {
+    return this.dorriService.getRates();
+  }
+
   @Post('charge/quote')
   createChargeQuote(@CurrentUser() user: AuthUser, @Body() dto: CreateChargeQuoteDto) {
     return this.dorriService.createChargeQuote(user.userId, dto);

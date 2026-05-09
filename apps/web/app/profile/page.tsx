@@ -1,10 +1,11 @@
 ﻿'use client'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ArrowLeft, Star, Edit2, MapPin, Globe, Calendar, ChevronRight, LogOut } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import BottomNav from '@/components/BottomNav'
 import { useLang } from '@/components/LangContext'
+import { getMe, type UserMe } from '@/lib/domain'
 
 const t = {
   KOR: {
@@ -12,7 +13,7 @@ const t = {
     hostGrade: '실버 파트너',
     location: '서울, 한국',
     languages: '한국어, 영어',
-    stats: ['참여 밋업', '호스트', '신뢰 점수'],
+    stats: ['참여 밋업', '호스트', '신뢰 별점'],
     tabs: ['내 정보', '참여 밋업', '호스트 이력'],
     joinDate: '가입일',
     joinDateVal: '2024년 3월 15일',
@@ -53,6 +54,17 @@ export default function ProfilePage() {
   const { lang } = useLang()
   const tx = t[lang]
   const [activeTab, setActiveTab] = useState(tx.tabs[0])
+  const [me, setMe] = useState<UserMe | null>(null)
+
+  useEffect(() => {
+    getMe().then(setMe).catch(() => setMe(null))
+  }, [])
+
+  const joinedMeetups = me?.joinedMeetups ?? []
+  const hostedMeetups = me?.hostedMeetups ?? []
+  const joinDate = me?.createdAt
+    ? new Date(me.createdAt).toLocaleDateString(lang === 'KOR' ? 'ko-KR' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+    : tx.joinDateVal
 
   return (
     <div className="app-shell bg-gray-50 min-h-dvh pb-24 md:min-h-screen md:bg-[#F6F3FF] md:px-10 md:pb-12 md:pt-28">
@@ -74,7 +86,7 @@ export default function ProfilePage() {
             </div>
           </div>
           <div className="flex-1">
-            <h2 className="text-[20px] font-black text-[#232129] md:text-4xl">CryptoMagic</h2>
+            <h2 className="text-[20px] font-black text-[#232129] md:text-4xl">{me?.name ?? 'CryptoMagic'}</h2>
             <div className="flex items-center gap-1 mt-1">
               <Star size={13} fill="#7B5CF6" className="text-[#7B5CF6]" />
               <span className="text-[12px] font-bold text-[#7B5CF6]">{tx.hostGrade}</span>
@@ -91,9 +103,13 @@ export default function ProfilePage() {
         </div>
 
         <div className="grid grid-cols-3 gap-3 mt-5 md:mt-8 md:max-w-2xl md:gap-4">
-          {[{ label: tx.stats[0], value: '12' }, { label: tx.stats[1], value: '3' }, { label: tx.stats[2], value: '98%' }].map(stat => (
+          {[
+            { label: tx.stats[0], value: String(me?.stats?.joinedMeetups ?? 0) },
+            { label: tx.stats[1], value: String(me?.stats?.hostedMeetups ?? 0) },
+            { label: tx.stats[2], value: me?.stats?.trustScore ?? me?.reputationScore ?? '0' },
+          ].map(stat => (
             <div key={stat.label} className="bg-[#F4F0FF] rounded-2xl p-3 text-center md:p-5">
-              <p className="text-[18px] font-black text-[#7B5CF6] md:text-3xl">{stat.value}</p>
+              <p className="text-[18px] font-black text-[#7B5CF6] md:text-3xl">{stat.label === tx.stats[2] ? `${me?.reputationScore ?? stat.value}` : stat.value}</p>
               <p className="text-[10px] text-gray-500 mt-0.5 font-medium md:text-sm">{stat.label}</p>
             </div>
           ))}
@@ -117,7 +133,7 @@ export default function ProfilePage() {
               <Calendar size={18} className="text-[#7B5CF6]" />
               <div>
                 <p className="text-[11px] text-gray-400 font-medium">{tx.joinDate}</p>
-                <p className="text-[13px] font-bold text-[#232129] mt-0.5">{tx.joinDateVal}</p>
+                <p className="text-[13px] font-bold text-[#232129] mt-0.5">{joinDate}</p>
               </div>
             </div>
             {tx.menu.map(item => (
@@ -139,44 +155,54 @@ export default function ProfilePage() {
 
         {activeTab === tx.tabs[1] && (
           <div className="flex flex-col gap-3 md:grid md:grid-cols-2 md:gap-4 lg:grid-cols-3">
-            {[
-              { title: { KOR: '서울 언어교환 모임', ENG: 'Seoul Language Exchange' }, date: '2025년 4월 10일', emoji: 'A' },
-              { title: { KOR: '한강 피크닉 클럽', ENG: 'Han River Picnic Club' }, date: '2025년 3월 22일', emoji: 'P' },
-              { title: { KOR: '홍대 보드게임 나이트', ENG: 'Hongdae Board Game Night' }, date: '2025년 3월 5일', emoji: 'G' },
-            ].map(m => (
-              <div key={m.title.KOR} className="bg-white rounded-2xl p-4 flex items-center gap-4 border border-gray-100 md:p-6">
+            {joinedMeetups.map((item) => (
+              <Link href={`/meetups/${item.meetup.id}`} key={item.applicationId} className="bg-white rounded-2xl p-4 flex items-center gap-4 border border-gray-100 md:p-6">
                 <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
                   style={{ background: 'linear-gradient(135deg, #EDE9FE, #C4B5FD)' }}>
-                  {m.emoji}
+                  M
                 </div>
                 <div>
-                  <p className="text-[13px] font-bold text-[#232129]">{m.title[lang]}</p>
-                  <p className="text-[11px] text-gray-400 mt-0.5">{m.date}</p>
+                  <p className="text-[13px] font-bold text-[#232129]">{item.meetup.title}</p>
+                  <p className="text-[11px] text-gray-400 mt-0.5">
+                    {new Date(item.meetup.startsAt).toLocaleDateString(lang === 'KOR' ? 'ko-KR' : 'en-US')} · {item.status}
+                  </p>
                 </div>
-              </div>
+              </Link>
             ))}
+            {joinedMeetups.length === 0 && <EmptyState label={lang === 'KOR' ? '참여한 밋업이 없어요.' : 'No joined meetups yet.'} />}
           </div>
         )}
 
         {activeTab === tx.tabs[2] && (
           <div className="flex flex-col gap-3 md:grid md:grid-cols-2 md:gap-4">
-            {[{ title: { KOR: 'Seoul Crypto Meetup', ENG: 'Seoul Crypto Meetup' }, date: '2025년 5월 10일', members: '0/20', emoji: 'D' }].map(m => (
-              <div key={m.title.KOR} className="bg-white rounded-2xl p-4 flex items-center gap-4 border border-gray-100 md:p-6">
+            {hostedMeetups.map((meetup) => (
+              <Link href={`/meetups/${meetup.id}`} key={meetup.id} className="bg-white rounded-2xl p-4 flex items-center gap-4 border border-gray-100 md:p-6">
                 <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
                   style={{ background: 'linear-gradient(135deg, #EDE9FE, #C4B5FD)' }}>
-                  {m.emoji}
+                  H
                 </div>
                 <div className="flex-1">
-                  <p className="text-[13px] font-bold text-[#232129]">{m.title[lang]}</p>
-                  <p className="text-[11px] text-gray-400 mt-0.5">{m.date} 쨌 {m.members}</p>
+                  <p className="text-[13px] font-bold text-[#232129]">{meetup.title}</p>
+                  <p className="text-[11px] text-gray-400 mt-0.5">
+                    {new Date(meetup.startsAt).toLocaleDateString(lang === 'KOR' ? 'ko-KR' : 'en-US')} · {meetup.appliedCount}/{meetup.capacity}
+                  </p>
                 </div>
-                <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full">{tx.ongoing}</span>
-              </div>
+                <span className="text-[10px] font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full">{meetup.status}</span>
+              </Link>
             ))}
+            {hostedMeetups.length === 0 && <EmptyState label={tx.noHost} />}
           </div>
         )}
       </div>
       <BottomNav />
+    </div>
+  )
+}
+
+function EmptyState({ label }: { label: string }) {
+  return (
+    <div className="rounded-2xl border border-gray-100 bg-white p-8 text-center text-[13px] font-semibold text-gray-400">
+      {label}
     </div>
   )
 }

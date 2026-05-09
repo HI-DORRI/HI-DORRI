@@ -78,6 +78,14 @@ export class OrganizerService {
             createTxHash: true,
           },
         },
+        organizerEvaluation: {
+          select: {
+            id: true,
+            rating: true,
+            blocked: true,
+            createdAt: true,
+          },
+        },
       },
       orderBy: { appliedAt: 'desc' },
     });
@@ -103,7 +111,38 @@ export class OrganizerService {
               createTxHash: application.escrow.createTxHash,
             }
           : null,
+        organizerEvaluation: application.organizerEvaluation
+          ? {
+              id: application.organizerEvaluation.id,
+              rating: application.organizerEvaluation.rating,
+              blocked: application.organizerEvaluation.blocked,
+              createdAt: application.organizerEvaluation.createdAt.toISOString(),
+            }
+          : null,
       })),
+    };
+  }
+
+  async closeMeetup(meetupId: string, userId: string) {
+    const meetup = await this.getOrganizerMeetup(meetupId, userId);
+
+    if (meetup.status === 'CLOSED' || meetup.status === 'SETTLED') {
+      throw this.invalidState('Meetup is already closed');
+    }
+
+    const updated = await this.prisma.meetup.update({
+      where: { id: meetup.id },
+      data: { status: 'CLOSED' },
+    });
+
+    return {
+      meetup: {
+        id: updated.id,
+        title: updated.title,
+        status: updated.status,
+        closedAt: new Date().toISOString(),
+      },
+      nextStep: 'REVIEW_AND_SETTLEMENT',
     };
   }
 
@@ -319,26 +358,27 @@ export class OrganizerService {
     const application = await this.getOrganizerApplication(applicationId, userId);
 
     if (
+      application.status !== ApplicationStatus.CHECKED_IN &&
       application.status !== ApplicationStatus.REVIEWED &&
       application.status !== ApplicationStatus.NO_SHOW &&
       application.status !== ApplicationStatus.SETTLED
     ) {
-      throw this.invalidState('Only reviewed, no-show, or settled applications can be evaluated');
+      throw this.invalidState('Only checked-in, reviewed, no-show, or settled applications can be evaluated');
     }
 
-    const evaluation = await this.prisma.organizerParticipantEvaluation.upsert({
+    const existingEvaluation = await this.prisma.organizerParticipantEvaluation.findUnique({
       where: { applicationId: application.id },
-      create: {
+    });
+
+    if (existingEvaluation) {
+      throw new ConflictException('This participant has already been evaluated');
+    }
+
+    const evaluation = await this.prisma.organizerParticipantEvaluation.create({
+      data: {
         applicationId: application.id,
         organizerId: userId,
         participantId: application.userId,
-        rating: dto.rating,
-        tags: dto.tags,
-        comment: dto.comment,
-        blocked: Boolean(dto.blocked),
-        blockReason: dto.blockReason,
-      },
-      update: {
         rating: dto.rating,
         tags: dto.tags,
         comment: dto.comment,

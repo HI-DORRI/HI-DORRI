@@ -1,269 +1,350 @@
 'use client'
-import { useState } from 'react'
+
+import type { ReactNode } from 'react'
+import { use, useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, MoreVertical, Search, Star, X } from 'lucide-react'
-import Image from 'next/image'
-import { useLang } from '@/components/LangContext'
+import {
+  createApplicationReview,
+  evaluateOrganizerParticipant,
+  getMe,
+  getMeetup,
+  getOrganizerApplications,
+  refreshDorriBalance,
+  settleApplication,
+  type MeetupDetail,
+  type OrganizerApplication,
+  type UserMe,
+} from '@/lib/domain'
 
-const t = {
-  KOR: {
-    title: '참가자 평가',
-    bulkTitle: '일괄 평가',
-    bulkDesc: '모든 참가자에게 기본 평점 부여',
-    searchPlaceholder: '참가자 검색...',
-    listTitle: '참가자 명단',
-    detailBtn: '상세 평가',
-    submitAll: '평가 완료 및 제출',
-    detailTitle: '참가자 평가하기',
-    detailDesc: '해당 참가자는 어떠하나요?',
-    reviewLabel: '상세 후기',
-    reviewPlaceholder: '자세한 후기를 남겨주세요.',
-    submitDetail: '상세 평가 제출',
-    joinComplete: '참가 완료',
-    notAttended: '미참여',
-    people: '명',
-  },
-  ENG: {
-    title: 'Participant Review',
-    bulkTitle: 'Bulk Rating',
-    bulkDesc: 'Apply a base rating to all participants',
-    searchPlaceholder: 'Search participants...',
-    listTitle: 'Participants',
-    detailBtn: 'Review',
-    submitAll: 'Complete & Submit',
-    detailTitle: 'Rate Participant',
-    detailDesc: 'How was this participant?',
-    reviewLabel: 'Detailed Review',
-    reviewPlaceholder: 'Leave a detailed review...',
-    submitDetail: 'Submit Review',
-    joinComplete: 'Attended',
-    notAttended: 'Absent',
-    people: ' people',
+const reviewableStatuses = ['CHECKED_IN', 'NO_SHOW', 'REVIEWED', 'SETTLED']
+const attendedStatuses = ['CHECKED_IN', 'REVIEWED', 'SETTLED']
+
+export default function ReviewPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
+  const router = useRouter()
+  const [me, setMe] = useState<UserMe | null>(null)
+  const [meetup, setMeetup] = useState<MeetupDetail | null>(null)
+  const [applications, setApplications] = useState<OrganizerApplication[]>([])
+  const [rating, setRating] = useState(0)
+  const [comment, setComment] = useState('')
+  const [bulkRating, setBulkRating] = useState(0)
+  const [participantRatings, setParticipantRatings] = useState<Record<string, number>>({})
+  const [blocked, setBlocked] = useState<Record<string, boolean>>({})
+  const [search, setSearch] = useState('')
+  const [error, setError] = useState('')
+  const [notice, setNotice] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const isOrganizer = Boolean(me && meetup?.host.id === me.id)
+  const reviewableApplications = useMemo(
+    () => applications.filter((item) => reviewableStatuses.includes(item.status)),
+    [applications],
+  )
+  const filteredApplications = reviewableApplications.filter((item) =>
+    item.participant.name.toLowerCase().includes(search.toLowerCase()),
+  )
+
+  const load = useCallback(async () => {
+    const [meetupData, meData] = await Promise.all([getMeetup(id), getMe()])
+    setMeetup(meetupData)
+    setMe(meData)
+
+    if (meetupData.host.id === meData.id) {
+      setApplications(await getOrganizerApplications(id))
+    }
+  }, [id])
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      load().catch(() => undefined)
+    }, 0)
+
+    return () => window.clearTimeout(timeout)
+  }, [load])
+
+  async function submitParticipantReview() {
+    if (!meetup?.myApplication) return
+    const applicationId = meetup.myApplication.id
+
+    if (meetup.myApplication.status !== 'REVIEWED' && rating === 0) return
+
+    setError('')
+    setNotice('')
+    setIsSubmitting(true)
+
+    try {
+      if (meetup.myApplication.status !== 'REVIEWED') {
+        await createApplicationReview(applicationId, { rating, tags: [], comment })
+      }
+
+      await settleApplication(applicationId)
+      await refreshDorriBalance(3, 1000)
+      router.push('/home')
+    } catch (err) {
+      setNotice('리뷰는 저장됐어요. XRPL 정산이 실패해서 아래 버튼으로 다시 시도해 주세요.')
+      setError(err instanceof Error ? err.message : '정산에 실패했어요.')
+      await load().catch(() => undefined)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
-}
 
-const participants = [
-  { id: '1', name: 'Sarah Johnson', status: 'attended', rating: 4.9, reviews: 5, avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=80&q=80' },
-  { id: '2', name: 'Daniel Kim', status: 'attended', rating: 4.7, reviews: 3, avatar: '' },
-  { id: '3', name: 'Minji Park', status: 'attended', rating: 4.5, reviews: 8, avatar: '' },
-  { id: '4', name: 'Hana Kim', status: 'attended', rating: 4.8, reviews: 2, avatar: '' },
-  { id: '5', name: '김수지', status: 'attended', rating: 4.2, reviews: 4, avatar: '' },
-  { id: '6', name: '박정준', status: 'attended', rating: 4.6, reviews: 6, avatar: '' },
-  { id: '7', name: '오현준', status: 'attended', rating: 4.3, reviews: 1, avatar: '' },
-  { id: '8', name: 'Alex Chen', status: 'absent', rating: 0, reviews: 0, avatar: '' },
-  { id: '9', name: '조민우', status: 'absent', rating: 0, reviews: 0, avatar: '', note: '27시간 전 환불' },
-]
+  async function retryParticipantSettlement() {
+    if (!meetup?.myApplication) return
+    setError('')
+    setIsSubmitting(true)
 
-function StarRating({ value, onChange, size = 20 }: { value: number; onChange?: (v: number) => void; size?: number }) {
-  const [hovered, setHovered] = useState(0)
+    try {
+      await settleApplication(meetup.myApplication.id)
+      await refreshDorriBalance(3, 1000)
+      router.push('/home')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '정산 재시도에 실패했어요.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  function applyBulkRating(value: number) {
+    setBulkRating(value)
+    setParticipantRatings((prev) => {
+      const next = { ...prev }
+      reviewableApplications
+        .filter((item) => !item.organizerEvaluation && attendedStatuses.includes(item.status))
+        .forEach((item) => {
+          next[item.id] = value
+        })
+      return next
+    })
+  }
+
+  async function submitOrganizerReviews() {
+    setError('')
+    setIsSubmitting(true)
+
+    try {
+      const targets = reviewableApplications.filter(
+        (item) => !item.organizerEvaluation && (participantRatings[item.id] || blocked[item.id]),
+      )
+      await Promise.all(
+        targets.map((item) =>
+          evaluateOrganizerParticipant(item.id, {
+            rating: participantRatings[item.id] || 1,
+            tags: [],
+            blocked: Boolean(blocked[item.id]),
+            blockReason: blocked[item.id] ? 'Organizer blocked this participant after meetup.' : undefined,
+          }),
+        ),
+      )
+      router.push(`/meetups/${id}`)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '참가자 평가 제출에 실패했어요.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   return (
-    <div className="flex gap-0.5">
-      {[1, 2, 3, 4, 5].map(i => (
-        <button key={i}
-          onMouseEnter={() => onChange && setHovered(i)}
-          onMouseLeave={() => onChange && setHovered(0)}
-          onClick={() => onChange?.(i)}
-          className={onChange ? 'cursor-pointer' : 'cursor-default'}>
-          <Star size={size}
-            fill={i <= (hovered || value) ? '#F59E0B' : 'none'}
-            className={i <= (hovered || value) ? 'text-yellow-400' : 'text-gray-300'}
-            strokeWidth={1.5} />
-        </button>
-      ))}
+    <div className="app-shell min-h-dvh bg-white pb-24 md:min-h-screen md:bg-[#F6F3FF] md:px-10 md:pb-12 md:pt-28">
+      <div className="mx-auto max-w-6xl md:rounded-[32px] md:bg-white md:shadow-[0_18px_48px_rgba(44,35,77,0.08)]">
+        <Header title={isOrganizer ? '참가자 평가' : '밋업 리뷰'} onBack={() => router.back()} />
+
+        <main className="px-5 py-6 md:px-8 md:py-8">
+          {isOrganizer ? (
+            <OrganizerReviewPanel
+              applications={filteredApplications}
+              totalCount={reviewableApplications.length}
+              search={search}
+              bulkRating={bulkRating}
+              ratings={participantRatings}
+              blocked={blocked}
+              onSearch={setSearch}
+              onBulkRate={applyBulkRating}
+              onRate={(applicationId, value) => setParticipantRatings((prev) => ({ ...prev, [applicationId]: value }))}
+              onToggleBlock={(applicationId) => setBlocked((prev) => ({ ...prev, [applicationId]: !prev[applicationId] }))}
+            />
+          ) : (
+            <ParticipantReviewPanel
+              meetup={meetup}
+              rating={rating}
+              comment={comment}
+              reviewed={meetup?.myApplication?.status === 'REVIEWED'}
+              onRate={setRating}
+              onComment={setComment}
+            />
+          )}
+
+          {notice && <p className="mt-5 rounded-xl bg-purple-50 px-4 py-3 text-[13px] font-semibold text-purple-600">{notice}</p>}
+          {error && <p className="mt-3 rounded-xl bg-red-50 px-4 py-3 text-[13px] font-semibold text-red-500">{error}</p>}
+
+          <div className="mt-8 flex flex-col gap-3 md:mx-auto md:max-w-md">
+            <button
+              disabled={isSubmitting || (isOrganizer ? reviewableApplications.length === 0 : meetup?.myApplication?.status !== 'REVIEWED' && rating === 0)}
+              onClick={isOrganizer ? submitOrganizerReviews : submitParticipantReview}
+              className="h-14 w-full rounded-2xl bg-[#6D28D9] text-[15px] font-bold text-white disabled:bg-gray-300"
+            >
+              {isSubmitting ? '처리 중' : isOrganizer ? '평가 완료 및 제출' : meetup?.myApplication?.status === 'REVIEWED' ? '정산 다시 시도' : '리뷰 제출하고 정산받기'}
+            </button>
+            {!isOrganizer && meetup?.myApplication?.status === 'REVIEWED' && (
+              <button onClick={retryParticipantSettlement} disabled={isSubmitting} className="h-12 rounded-2xl border border-gray-200 text-sm font-bold text-gray-600 disabled:opacity-40">
+                정산만 다시 시도하기
+              </button>
+            )}
+          </div>
+        </main>
+      </div>
     </div>
   )
 }
 
-export default function ReviewPage() {
-  const { lang } = useLang()
-  const tx = t[lang]
-  const router = useRouter()
-  const [bulkRating, setBulkRating] = useState(0)
-  const [ratings, setRatings] = useState<Record<string, number>>({})
-  const [search, setSearch] = useState('')
-  const [selected, setSelected] = useState<string | null>(null)
-  const [detailRating, setDetailRating] = useState(0)
-  const [detailReview, setDetailReview] = useState('')
-
-  const filtered = participants.filter(p =>
-    p.name.toLowerCase().includes(search.toLowerCase())
-  )
-
-  const selectedParticipant = participants.find(p => p.id === selected)
-
-  const handleBulkRating = (v: number) => {
-    setBulkRating(v)
-    const newRatings: Record<string, number> = {}
-    participants.filter(p => p.status === 'attended').forEach(p => {
-      newRatings[p.id] = v
-    })
-    setRatings(newRatings)
-  }
-
-  // 상세 평가 화면
-  if (selected && selectedParticipant) {
-    return (
-      <div className="app-shell bg-white min-h-dvh pb-10">
-        <div className="flex items-center justify-between px-5 pt-12 pb-4 border-b border-gray-100">
-          <button onClick={() => { setSelected(null); setDetailRating(0); setDetailReview('') }} className="p-2 -ml-2">
-            <ArrowLeft size={20} />
-          </button>
-          <h1 className="text-[16px] font-black text-[#232129]">{tx.title}</h1>
-          <button className="p-2 -mr-2"><MoreVertical size={18} /></button>
-        </div>
-
-        <div className="px-5 mt-6">
-          {/* 참가자 정보 */}
-          <div className="flex items-center gap-3 mb-6">
-            <div className="relative w-14 h-14 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
-              {selectedParticipant.avatar ? (
-                <Image src={selectedParticipant.avatar} alt={selectedParticipant.name} fill sizes="56px" className="object-cover" />
-              ) : (
-                <div className="w-full h-full bg-purple-100 flex items-center justify-center text-purple-400 font-black text-xl">
-                  {selectedParticipant.name[0]}
-                </div>
-              )}
-            </div>
-            <div>
-              <p className="text-[16px] font-black text-[#232129]">{selectedParticipant.name}</p>
-              <div className="flex items-center gap-1 mt-0.5">
-                <Star size={12} fill="#F59E0B" className="text-yellow-400" />
-                <span className="text-[12px] text-gray-500">{selectedParticipant.rating} ({selectedParticipant.reviews}{lang === 'KOR' ? '개 리뷰' : ' reviews'})</span>
-              </div>
-            </div>
-          </div>
-
-          {/* 별점 */}
-          <div className="text-center mb-6">
-            <p className="text-[15px] font-black text-[#232129] mb-1">{tx.detailTitle}</p>
-            <p className="text-[13px] text-gray-400 mb-4">{tx.detailDesc}</p>
-            <div className="flex justify-center">
-              <StarRating value={detailRating} onChange={setDetailRating} size={40} />
-            </div>
-          </div>
-
-          {/* 상세 후기 */}
-          <div>
-            <label className="text-[13px] font-bold text-[#232129] mb-2 block">{tx.reviewLabel}</label>
-            <textarea
-              value={detailReview}
-              onChange={e => setDetailReview(e.target.value)}
-              placeholder={tx.reviewPlaceholder}
-              rows={5}
-              className="w-full px-4 py-3 rounded-2xl border border-gray-200 text-[13px] outline-none focus:border-purple-400 resize-none transition"
-            />
-          </div>
-
-          <button
-            disabled={detailRating === 0}
-            onClick={() => {
-              setRatings(r => ({ ...r, [selected]: detailRating }))
-              setSelected(null)
-              setDetailRating(0)
-              setDetailReview('')
-            }}
-            className="w-full mt-6 py-4 rounded-2xl font-bold text-white text-[15px] disabled:opacity-40"
-            style={{ background: 'linear-gradient(90deg, #7B5CF6, #6D28D9)' }}>
-            {tx.submitDetail}
-          </button>
-        </div>
-      </div>
-    )
-  }
-
-  // 목록 화면
+function Header({ title, onBack }: { title: string; onBack: () => void }) {
   return (
-    <div className="app-shell bg-white min-h-dvh pb-24">
-      <div className="flex items-center justify-between px-5 pt-12 pb-4 border-b border-gray-100">
-        <button onClick={() => router.back()} className="p-2 -ml-2">
-          <ArrowLeft size={20} />
-        </button>
-        <h1 className="text-[16px] font-black text-[#232129]">{tx.title}</h1>
-        <button className="p-2 -mr-2"><MoreVertical size={18} /></button>
-      </div>
+    <header className="flex items-center justify-between border-b border-gray-100 px-5 pb-4 pt-12 md:px-8 md:pt-8">
+      <button onClick={onBack} className="p-2 -ml-2"><ArrowLeft size={20} /></button>
+      <h1 className="text-[16px] font-black text-[#232129]">{title}</h1>
+      <button className="p-2 -mr-2"><MoreVertical size={18} /></button>
+    </header>
+  )
+}
 
-      <div className="px-5 mt-5">
-        {/* 일괄 평가 */}
-        <div className="bg-gray-50 rounded-2xl p-5 text-center mb-5">
-          <p className="text-[15px] font-black text-[#232129]">{tx.bulkTitle}</p>
-          <p className="text-[12px] text-gray-400 mt-1 mb-4">{tx.bulkDesc}</p>
-          <div className="flex justify-center">
-            <StarRating value={bulkRating} onChange={handleBulkRating} size={32} />
-          </div>
-        </div>
-
-        {/* 검색 */}
-        <div className="relative mb-4">
-          <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder={tx.searchPlaceholder}
-            className="w-full pl-10 pr-4 py-3 rounded-2xl border border-gray-200 text-[13px] outline-none focus:border-purple-400 transition bg-gray-50"
-          />
-        </div>
-
-        {/* 참가자 목록 */}
-        <p className="text-[14px] font-black text-[#232129] mb-3">
-          {tx.listTitle} ({participants.length}{tx.people === '명' ? tx.people : tx.people})
+function ParticipantReviewPanel({ meetup, rating, comment, reviewed, onRate, onComment }: {
+  meetup: MeetupDetail | null
+  rating: number
+  comment: string
+  reviewed: boolean
+  onRate: (rating: number) => void
+  onComment: (comment: string) => void
+}) {
+  return (
+    <section>
+      <div className="rounded-2xl bg-[#F8F6FF] p-5 text-center">
+        <p className="text-sm font-bold text-purple-600">{meetup?.title ?? '밋업'}</p>
+        <h2 className="mt-2 text-xl font-black text-[#232129]">{reviewed ? '리뷰가 저장됐어요' : '밋업은 어땠나요?'}</h2>
+        <p className="mt-1 text-xs text-gray-500">
+          {reviewed ? '정산이 실패했다면 다시 시도할 수 있어요.' : '체크인된 참가자만 리뷰를 남기고 정산을 받을 수 있어요.'}
         </p>
+        {!reviewed && (
+          <div className="mt-5 flex justify-center">
+            <StarRating value={rating} onChange={onRate} size={36} />
+          </div>
+        )}
+      </div>
 
-        <div className="flex flex-col gap-3">
-          {filtered.map(p => (
-            <div key={p.id} className="flex items-center gap-3 py-2">
-              {/* 아바타 */}
-              <div className="relative w-11 h-11 rounded-full overflow-hidden flex-shrink-0">
-                {p.avatar ? (
-                  <Image src={p.avatar} alt={p.name} fill sizes="44px" className="object-cover" />
-                ) : (
-                  <div className={`w-full h-full flex items-center justify-center font-black text-base
-                    ${p.status === 'absent' ? 'bg-gray-100 text-gray-400' : 'bg-purple-100 text-purple-400'}`}>
-                    {p.name[0]}
-                  </div>
-                )}
-              </div>
+      {!reviewed && (
+        <>
+          <label className="mt-6 block text-[13px] font-bold text-[#232129]">후기</label>
+          <textarea
+            value={comment}
+            onChange={(event) => onComment(event.target.value)}
+            placeholder="밋업 경험을 간단히 남겨주세요."
+            rows={6}
+            className="mt-2 w-full resize-none rounded-2xl border border-gray-200 px-4 py-3 text-[13px] outline-none transition focus:border-purple-400"
+          />
+        </>
+      )}
+    </section>
+  )
+}
 
-              {/* 이름 & 상태 */}
-              <div className="flex-1 min-w-0">
-                <p className={`text-[13px] font-bold truncate ${p.status === 'absent' ? 'text-gray-400' : 'text-[#232129]'}`}>
-                  {p.name}
-                </p>
-                <p className={`text-[11px] mt-0.5 ${p.status === 'absent' ? 'text-red-400' : 'text-gray-400'}`}>
-                  {p.note || (p.status === 'attended' ? tx.joinComplete : tx.notAttended)}
-                </p>
-              </div>
-
-              {/* 별점 */}
-              <div className="flex-shrink-0">
-                <StarRating value={ratings[p.id] || 0} size={14} />
-              </div>
-
-              {/* 버튼들 */}
-              <div className="flex items-center gap-1 flex-shrink-0">
-                <button
-                  onClick={() => setSelected(p.id)}
-                  disabled={p.status === 'absent'}
-                  className="text-[11px] font-bold text-purple-600 bg-purple-50 px-2.5 py-1.5 rounded-lg disabled:opacity-30">
-                  {tx.detailBtn}
-                </button>
-                <button className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center">
-                  <X size={12} className="text-gray-400" />
-                </button>
-              </div>
-            </div>
-          ))}
+function OrganizerReviewPanel(props: {
+  applications: OrganizerApplication[]
+  totalCount: number
+  search: string
+  bulkRating: number
+  ratings: Record<string, number>
+  blocked: Record<string, boolean>
+  onSearch: (value: string) => void
+  onBulkRate: (value: number) => void
+  onRate: (applicationId: string, rating: number) => void
+  onToggleBlock: (applicationId: string) => void
+}) {
+  return (
+    <section>
+      <div className="rounded-2xl bg-[#F8F6FF] p-5 text-center">
+        <h2 className="text-xl font-black text-[#232129]">일괄 평가</h2>
+        <p className="mt-1 text-xs text-gray-500">체크인 참가자에게만 기본 평점을 부여해요. 노쇼 유저는 제외됩니다.</p>
+        <div className="mt-5 flex justify-center">
+          <StarRating value={props.bulkRating} onChange={props.onBulkRate} size={32} />
         </div>
       </div>
 
-      {/* 하단 버튼 */}
-      <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[390px] px-5 pb-8 pt-4 bg-white border-t border-gray-100">
-        <button
-          onClick={() => router.push('/home')}
-          className="w-full py-4 rounded-2xl font-bold text-white text-[15px]"
-          style={{ background: Object.keys(ratings).length > 0 ? 'linear-gradient(90deg, #7B5CF6, #6D28D9)' : '#D1D5DB' }}>
-          {tx.submitAll}
-        </button>
+      <div className="relative mt-5">
+        <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+        <input
+          value={props.search}
+          onChange={(event) => props.onSearch(event.target.value)}
+          placeholder="참가자 검색..."
+          className="w-full rounded-2xl border border-gray-200 bg-gray-50 py-3 pl-10 pr-4 text-[13px] outline-none transition focus:border-purple-400"
+        />
       </div>
+
+      <p className="mb-3 mt-5 text-[14px] font-black text-[#232129]">참가자 명단 ({props.totalCount}명)</p>
+      <div className="flex flex-col gap-2">
+        {props.applications.map((application) => (
+          <OrganizerReviewRow
+            key={application.id}
+            application={application}
+            rating={props.ratings[application.id] ?? 0}
+            blocked={Boolean(props.blocked[application.id])}
+            onRate={(value) => props.onRate(application.id, value)}
+            onToggleBlock={() => props.onToggleBlock(application.id)}
+          />
+        ))}
+        {props.applications.length === 0 && <p className="rounded-2xl border border-gray-100 p-8 text-center text-sm font-semibold text-gray-400">평가할 참가자가 없어요.</p>}
+      </div>
+    </section>
+  )
+}
+
+function OrganizerReviewRow({ application, rating, blocked, onRate, onToggleBlock }: {
+  application: OrganizerApplication
+  rating: number
+  blocked: boolean
+  onRate: (rating: number) => void
+  onToggleBlock: () => void
+}) {
+  const isNoShow = application.status === 'NO_SHOW'
+  const evaluated = Boolean(application.organizerEvaluation)
+
+  return (
+    <div className="flex items-center gap-3 rounded-2xl border border-gray-100 bg-white p-4">
+      <Avatar>{application.participant.name[0]}</Avatar>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[13px] font-bold text-[#232129]">{application.participant.name}</p>
+        <p className={`mt-0.5 text-[11px] ${isNoShow ? 'text-red-400' : 'text-gray-400'}`}>{isNoShow ? '노쇼' : '참가 완료'}</p>
+      </div>
+      {evaluated ? (
+        <span className="rounded-full bg-green-50 px-3 py-2 text-[11px] font-bold text-green-600">평가 완료</span>
+      ) : (
+        <>
+      <div className="hidden md:block">
+        <StarRating value={rating} onChange={onRate} size={15} />
+      </div>
+      <button className="rounded-lg bg-purple-50 px-3 py-2 text-[11px] font-bold text-purple-600 md:hidden" onClick={() => onRate(rating >= 5 ? 1 : rating + 1)}>
+        {rating || '평가'}
+      </button>
+      <button onClick={onToggleBlock} className={`flex h-8 w-8 items-center justify-center rounded-full ${blocked ? 'bg-red-50 text-red-400' : 'bg-gray-100 text-gray-400'}`}>
+        <X size={13} />
+      </button>
+        </>
+      )}
+    </div>
+  )
+}
+
+function Avatar({ children }: { children: ReactNode }) {
+  return <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-purple-100 text-base font-black text-purple-400">{children}</div>
+}
+
+function StarRating({ value, onChange, size = 20 }: { value: number; onChange: (value: number) => void; size?: number }) {
+  return (
+    <div className="flex gap-1">
+      {[1, 2, 3, 4, 5].map((item) => (
+        <button key={item} onClick={() => onChange(item)} type="button">
+          <Star size={size} fill={item <= value ? '#F59E0B' : 'none'} className={item <= value ? 'text-yellow-400' : 'text-gray-300'} strokeWidth={1.5} />
+        </button>
+      ))}
     </div>
   )
 }

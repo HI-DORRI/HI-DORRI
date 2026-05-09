@@ -20,6 +20,11 @@ export class OrganizerController {
     return this.organizerService.getApplications(id, user.userId);
   }
 
+  @Post('meetups/:id/close')
+  closeMeetup(@Param('id') id: string, @CurrentUser() user: AuthUser) {
+    return this.organizerService.closeMeetup(id, user.userId);
+  }
+
   @Post('applications/:id/approve')
   approve(@Param('id') id: string, @CurrentUser() user: AuthUser) {
     return this.organizerService.approve(id, user.userId);

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { ArrowLeft, Eye, LockKeyhole, Mail } from 'lucide-react'
 import { useState } from 'react'
 import { useLang } from '@/components/LangContext'
+import { apiFetch, setAccessToken } from '@/lib/api'
 
 const t = {
   KOR: {
@@ -40,6 +41,29 @@ export default function LoginPage() {
   const tx = t[lang]
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setError('')
+    setIsSubmitting(true)
+
+    try {
+      const result = await apiFetch<{ accessToken: string }>('/auth/login', {
+        method: 'POST',
+        skipAuth: true,
+        body: { email, password },
+      })
+
+      setAccessToken(result.accessToken)
+      router.push('/home')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '로그인에 실패했습니다.')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   return (
     <main className="app-shell min-h-dvh bg-white text-[#232129] md:min-h-screen md:bg-[#F6F3FF] md:px-10 md:py-20">
@@ -72,10 +96,7 @@ export default function LoginPage() {
 
           <form
             className="mt-9 flex flex-col gap-4"
-            onSubmit={(event) => {
-              event.preventDefault()
-              router.push('/home')
-            }}
+            onSubmit={handleLogin}
           >
             <label className="block">
               <span className="mb-2 block text-[13px] font-bold text-[#232129]">{tx.email}</span>
@@ -110,8 +131,10 @@ export default function LoginPage() {
               {tx.forgot}
             </Link>
 
-            <button type="submit" className="mt-2 h-14 rounded-2xl bg-[#673BD2] text-[15px] font-bold text-white shadow-[0_12px_24px_rgba(103,59,210,0.22)]">
-              {tx.login}
+            {error && <p className="rounded-xl bg-red-50 px-4 py-3 text-[13px] font-semibold text-red-500">{error}</p>}
+
+            <button disabled={isSubmitting} type="submit" className="mt-2 h-14 rounded-2xl bg-[#673BD2] text-[15px] font-bold text-white shadow-[0_12px_24px_rgba(103,59,210,0.22)] disabled:opacity-50">
+              {isSubmitting ? (lang === 'KOR' ? '로그인 중...' : 'Logging in...') : tx.login}
             </button>
           </form>
 
