@@ -1,5 +1,5 @@
-'use client'
-import { ArrowLeftRight, Bell, Menu, Plus, Search, User, WalletCards } from 'lucide-react'
+﻿'use client'
+import { ArrowLeftRight, Bell, Menu, Plus, WalletCards } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import BottomNav from '@/components/BottomNav'
@@ -7,24 +7,24 @@ import { useLang } from '@/components/LangContext'
 
 const t = {
   KOR: {
-    greeting: 'CryptoMagic님',
-    subtitle: '오늘도 멋진 밋업을 기대할게요',
+    greeting: '안녕하세요, Sarah!',
+    subtitle: '오늘도 글로벌 여정을 이어가세요.',
     walletLabel: '내 지갑',
     charge: '충전하기',
     exchange: '송금하기',
     quickStart: '빠른 시작',
     quickActions: [
-      { label: '충전하기', emoji: '💰' },
-      { label: '탐색하기', emoji: '🔍' },
-      { label: '프로필 설정', emoji: '👤' },
+      { label: '충전하기', emoji: '$' },
+      { label: '탐색하기', emoji: 'Q' },
+      { label: '프로필 설정', emoji: 'U' },
     ],
     myMeetups: '내 밋업',
-    seeAll: '전체보기 →',
+    seeAll: '전체보기 ->',
     noMeetup: '예정된 밋업이 없어요',
-    noMeetupDesc: '주변의 새로운 사람들과 환전 기회를 발견해보세요.',
+    noMeetupDesc: '주변의 새로운 사람들과 환전 기회를 찾아보세요.',
     exploreMeetups: '밋업 탐색',
     spotlight: 'Community Spotlight',
-    spotlightDesc: 'David가 지난 밋업에서 15% 절약한 방법',
+    spotlightDesc: 'David가 지난 밋업에서 15%를 절약한 방법',
   },
   ENG: {
     greeting: 'Hi, Sarah!',
@@ -34,12 +34,12 @@ const t = {
     exchange: 'Exchange',
     quickStart: 'Quick Start',
     quickActions: [
-      { label: 'Add Funds', emoji: '💰' },
-      { label: 'Explore', emoji: '🔍' },
-      { label: 'Set your Profile', emoji: '👤' },
+      { label: 'Add Funds', emoji: '$' },
+      { label: 'Explore', emoji: 'Q' },
+      { label: 'Set your Profile', emoji: 'U' },
     ],
     myMeetups: 'My Meetups',
-    seeAll: 'See All →',
+    seeAll: 'See All ->',
     noMeetup: 'No upcoming meetups yet',
     noMeetupDesc: 'Discover new people and currency exchange opportunities near you.',
     exploreMeetups: 'Explore Meetups',
@@ -53,9 +53,9 @@ export default function HomePage() {
   const tx = t[lang]
 
   return (
-    <main className="app-shell min-h-screen bg-white pb-32 text-[#202024]">
-      {/* 헤더 */}
-      <header className="flex items-center justify-between px-4 pt-12 pb-4 border-b border-gray-100">
+    <main className="app-shell min-h-screen bg-white pb-32 text-[#202024] md:bg-[#F6F3FF] md:px-10 md:pb-12 md:pt-28">
+      {/* Header */}
+      <header className="flex items-center justify-between px-4 pt-2 pb-4 border-b border-gray-100 md:hidden">
         <button aria-label="Open menu">
           <Menu size={22} strokeWidth={2.4} className="text-[#232129]" />
         </button>
@@ -66,12 +66,12 @@ export default function HomePage() {
         </button>
       </header>
 
-      <div className="px-5">
-        {/* 인사 */}
-        <div className="flex items-center justify-between mt-5">
+      <div className="px-5 md:mx-auto md:grid md:max-w-6xl md:grid-cols-[minmax(0,1.15fr)_420px] md:items-start md:gap-6 md:px-0">
+        {/* Greeting */}
+        <div className="flex items-center justify-between mt-5 md:col-span-2 md:mt-0 md:rounded-[28px] md:bg-white md:p-8 md:shadow-[0_14px_34px_rgba(44,35,77,0.07)]">
           <div>
-            <h1 className="text-[22px] font-black text-[#232129]">{tx.greeting}</h1>
-            <p className="text-[13px] text-[#4f4a5f] mt-0.5">{tx.subtitle}</p>
+            <h1 className="text-[22px] font-black text-[#232129] md:text-4xl">{tx.greeting}</h1>
+            <p className="text-[13px] text-[#4f4a5f] mt-0.5 md:mt-2 md:text-base">{tx.subtitle}</p>
           </div>
           <div className="relative h-11 w-11 overflow-hidden rounded-full border-[3px] border-[#7B5CF6]">
             <Image
@@ -80,20 +80,20 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* 지갑 카드 */}
-        <div className="relative overflow-hidden rounded-2xl bg-[#7446D8] px-5 py-5 text-white mt-5 shadow-[0_12px_24px_rgba(116,70,216,0.25)]">
+        {/* Wallet card */}
+        <div className="relative overflow-hidden rounded-2xl bg-[#7446D8] px-5 py-5 text-white mt-5 shadow-[0_12px_24px_rgba(116,70,216,0.25)] md:mt-0 md:min-h-[250px] md:self-start md:rounded-[28px] md:px-8 md:py-8">
           <div className="absolute right-[-20px] top-[-20px] h-36 w-36 rounded-full bg-white/10" />
           <div className="absolute right-10 top-4 h-28 w-28 rounded-full bg-white/10" />
           <div className="absolute right-[-10px] top-16 h-32 w-32 rounded-full bg-white/10" />
-          <div className="relative">
-            <p className="text-[13px] font-semibold text-white/80">{tx.walletLabel}</p>
-            <p className="mt-2 text-[32px] font-black leading-none">0 DORRI</p>
-            <div className="mt-6 flex gap-3">
+          <div className="relative md:flex md:min-h-[186px] md:flex-col md:justify-between">
+            <p className="text-[13px] font-semibold text-white/80 md:text-base">{tx.walletLabel}</p>
+            <p className="mt-2 text-[32px] font-black leading-none md:text-5xl">0 DORRI</p>
+            <div className="mt-6 flex gap-3 md:max-w-lg">
               <Link href="/wallet/add-funds"
-                className="flex h-11 flex-1 items-center justify-center gap-2 rounded-full bg-white text-[13px] font-bold text-[#7446D8]">
+                className="flex h-11 flex-1 items-center justify-center gap-2 rounded-full bg-white text-[13px] font-bold text-[#7446D8] md:h-12 md:text-sm">
                 <Plus size={16} strokeWidth={2.4} />{tx.charge}
               </Link>
-              <button className="flex h-11 flex-1 items-center justify-center gap-2 rounded-full bg-white text-[13px] font-bold text-[#7446D8]">
+              <button className="flex h-11 flex-1 items-center justify-center gap-2 rounded-full bg-white text-[13px] font-bold text-[#7446D8] md:h-12 md:text-sm">
                 <ArrowLeftRight size={16} strokeWidth={2.4} />{tx.exchange}
               </button>
             </div>
@@ -101,13 +101,13 @@ export default function HomePage() {
         </div>
 
         {/* Quick Start */}
-        <div className="mt-6">
-          <h2 className="text-[15px] font-black text-[#232129] mb-3">{tx.quickStart}</h2>
-          <div className="rounded-2xl border border-[#E6DAFF] bg-[#FBFAFF] px-4 py-5">
-            <div className="grid grid-cols-3 gap-2">
+        <div className="mt-6 md:mt-0 md:rounded-[28px] md:bg-white md:p-7 md:shadow-[0_14px_34px_rgba(44,35,77,0.07)]">
+          <h2 className="text-[15px] font-black text-[#232129] mb-3 md:text-xl">{tx.quickStart}</h2>
+          <div className="rounded-2xl border border-[#E6DAFF] bg-[#FBFAFF] px-4 py-5 md:border-none md:bg-transparent md:p-0">
+            <div className="grid grid-cols-3 gap-2 md:grid-cols-1 md:gap-3">
               {tx.quickActions.map((action, i) => (
                 <button key={i}
-                  className="flex flex-col items-center justify-center gap-2 h-[78px] rounded-xl border border-[#E9DFFF] bg-[#F4F0FF]">
+                  className="flex flex-col items-center justify-center gap-2 h-[78px] rounded-xl border border-[#E9DFFF] bg-[#F4F0FF] md:h-[92px]">
                   <span className="text-2xl">{action.emoji}</span>
                   <span className="text-[10px] font-medium leading-tight text-[#25232D] text-center">{action.label}</span>
                 </button>
@@ -117,7 +117,7 @@ export default function HomePage() {
         </div>
 
         {/* My Meetups */}
-        <div className="mt-6">
+        <div className="mt-6 md:rounded-[28px] md:bg-white md:p-8 md:shadow-[0_14px_34px_rgba(44,35,77,0.07)]">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-[15px] font-black text-[#232129]">{tx.myMeetups}</h2>
             <Link href="/meetups" className="text-[12px] font-semibold text-[#7B5CF6]">{tx.seeAll}</Link>
@@ -134,7 +134,7 @@ export default function HomePage() {
         </div>
 
         {/* Community Spotlight */}
-        <div className="mt-5 mb-5 relative h-[140px] overflow-hidden rounded-2xl bg-[#332A42]">
+        <div className="mt-5 mb-5 relative h-[140px] overflow-hidden rounded-2xl bg-[#332A42] md:mb-0 md:mt-6 md:h-[260px] md:rounded-[28px] md:shadow-[0_14px_34px_rgba(44,35,77,0.1)]">
           <Image
             src="https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&w=900&q=80"
             alt="" fill sizes="350px" className="object-cover opacity-80" />
@@ -150,3 +150,4 @@ export default function HomePage() {
     </main>
   )
 }
+

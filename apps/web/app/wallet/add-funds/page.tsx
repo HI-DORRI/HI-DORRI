@@ -16,6 +16,7 @@ import {
   MoreVertical,
   Wallet,
 } from 'lucide-react'
+import { useLang } from '@/components/LangContext'
 
 const quickAmounts = [10, 20, 30, 50, 100]
 const networkFeeUsd = 0.45
@@ -30,7 +31,104 @@ type PaymentMethod = 'card' | 'wallet' | null
 type CurrencyCode = keyof typeof currencies
 type Currency = (typeof currencies)[CurrencyCode]
 
+const copy = {
+  KOR: {
+    title: '충전하기',
+    youPay: '결제 금액',
+    youCharge: '충전 수량',
+    live: '실시간',
+    quickSelect: '빠른 선택',
+    custom: '직접 입력',
+    chargeAmount: '충전 금액',
+    networkFee: '네트워크 수수료',
+    totalCost: '총 결제 금액',
+    exchange: '충전하기',
+    paymentMethod: '결제 수단',
+    paymentSubtitle: '결제 방법을 선택해 주세요',
+    card: '신용/체크카드',
+    cardDesc: '즉시 처리',
+    digitalWallet: '디지털 지갑',
+    digitalWalletDesc: 'Apple Pay, Google Pay',
+    youPayLine: '결제 금액',
+    youReceive: '충전 수량',
+    exchangeRate: '환율',
+    secure: 'Stripe를 통한 안전한 암호화 결제',
+    proceed: '결제 진행하기',
+    confirmTitle: '충전 내용을 확인해 주세요',
+    confirmDesc: '결제 전 거래 정보를 다시 확인해 주세요.',
+    charge: '충전',
+    pay: '결제',
+    walletPreview: '지갑 미리보기',
+    currentBalance: '현재 잔액',
+    newDeposit: '새 충전',
+    newBalance: '충전 후 잔액',
+    confirmPayment: '결제 확정',
+    cancel: '취소',
+    processing: '결제 처리 중',
+    processingDesc: 'XRPL을 통해 DORRI로 변환 중입니다',
+    pathfinding: '경로를 찾는 중...',
+    pleaseWait: '잠시만 기다려 주세요...',
+    securing: 'Ledger에서 최적 환율을 확인 중입니다',
+    success: '충전 완료!',
+    successDesc: 'DORRI가 성공적으로 충전되었습니다',
+    settlementAmount: '정산 금액',
+    settlementTime: '정산 시간',
+    seconds: '3초',
+    exploreMeetups: '밋업 둘러보기',
+    goHome: '홈으로 가기',
+  },
+  ENG: {
+    title: 'Add Funds',
+    youPay: 'YOU PAY',
+    youCharge: 'YOU CHARGE',
+    live: 'Live',
+    quickSelect: 'Quick Select',
+    custom: 'Custom',
+    chargeAmount: 'Charge Amount',
+    networkFee: 'Network Fee',
+    totalCost: 'Total Cost',
+    exchange: 'Exchange',
+    paymentMethod: 'Payment Method',
+    paymentSubtitle: 'Select your preferred way to pay',
+    card: 'Credit/Debit Card',
+    cardDesc: 'Instant processing',
+    digitalWallet: 'Digital Wallet',
+    digitalWalletDesc: 'Apple Pay, Google Pay',
+    youPayLine: 'You pay:',
+    youReceive: 'You receive:',
+    exchangeRate: 'Exchange rate',
+    secure: 'Secure, encrypted payment processing via Stripe',
+    proceed: 'Proceed to Pay',
+    confirmTitle: 'Confirm Your Purchase',
+    confirmDesc: 'Please review the transaction details before confirming your order.',
+    charge: 'CHARGE',
+    pay: 'PAY',
+    walletPreview: 'Wallet Preview',
+    currentBalance: 'Current Balance',
+    newDeposit: 'New Deposit',
+    newBalance: 'New Balance',
+    confirmPayment: 'Confirm Payment',
+    cancel: 'Cancel',
+    processing: 'Processing Payment',
+    processingDesc: 'Converting {currency} to DORRI via XRPL',
+    pathfinding: 'Pathfinding...',
+    pleaseWait: 'Please wait...',
+    securing: 'Securing best rate on Ledger',
+    success: 'Success!',
+    successDesc: 'Funds Added Successfully',
+    settlementAmount: 'SETTLEMENT AMOUNT',
+    settlementTime: 'Settlement time',
+    seconds: '3 seconds',
+    exploreMeetups: 'Explore Meetups',
+    goHome: 'Go to Home',
+  },
+}
+
+type Copy = (typeof copy)['ENG']
+
 export default function AddFundsPage() {
+  const { lang } = useLang()
+  const tx = copy[lang]
   const [dorriAmount, setDorriAmount] = useState(0)
   const [currencyCode, setCurrencyCode] = useState<CurrencyCode>('USD')
   const [step, setStep] = useState<Step>('amount')
@@ -52,17 +150,17 @@ export default function AddFundsPage() {
   }, [step])
 
   if (step === 'processing') {
-    return <ProcessingScreen currency={currency} />
+    return <ProcessingScreen currency={currency} tx={tx} />
   }
 
   if (step === 'success') {
-    return <SuccessScreen currency={currency} total={total} dorriAmount={dorriAmount} />
+    return <SuccessScreen currency={currency} total={total} dorriAmount={dorriAmount} tx={tx} />
   }
 
   return (
     <main className="min-h-screen bg-[#858585] md:bg-[#F6F3FF]">
       <div className="mx-auto min-h-screen w-full max-w-[390px] bg-white md:max-w-7xl">
-        <AddFundsHeader />
+        <AddFundsHeader title={tx.title} />
 
         {step === 'amount' ? (
           <AmountStep
@@ -75,6 +173,7 @@ export default function AddFundsPage() {
             onSelectAmount={setDorriAmount}
             onSelectCurrency={setCurrencyCode}
             onOpenConfirm={() => setShowConfirm(true)}
+            tx={tx}
           />
         ) : (
           <PaymentStep
@@ -85,6 +184,7 @@ export default function AddFundsPage() {
             paymentMethod={paymentMethod}
             onSelectPaymentMethod={setPaymentMethod}
             onPay={() => setStep('processing')}
+            tx={tx}
           />
         )}
 
@@ -94,6 +194,7 @@ export default function AddFundsPage() {
             currency={currency}
             total={total}
             onCancel={() => setShowConfirm(false)}
+            tx={tx}
             onConfirm={() => {
               setShowConfirm(false)
               setStep('payment')
@@ -105,13 +206,13 @@ export default function AddFundsPage() {
   )
 }
 
-function AddFundsHeader() {
+function AddFundsHeader({ title }: { title: string }) {
   return (
     <header className="flex h-[58px] items-center justify-between border-b border-[#EEEAF4] px-5 md:h-20 md:px-10">
       <Link href="/home" aria-label="Back to home" className="flex h-10 w-10 items-center justify-start text-[#33313A] md:h-12 md:w-12">
         <ArrowLeft className="h-[21px] w-[21px] md:h-7 md:w-7" />
       </Link>
-      <h1 className="text-[15px] font-bold text-[#17171B] md:text-xl">Add Funds</h1>
+      <h1 className="text-[15px] font-bold text-[#17171B] md:text-xl">{title}</h1>
       <button type="button" aria-label="More options" className="flex h-10 w-10 items-center justify-end text-[#33313A] md:h-12 md:w-12">
         <MoreVertical className="h-[19px] w-[19px] md:h-7 md:w-7" />
       </button>
@@ -129,6 +230,7 @@ function AmountStep({
   onSelectAmount,
   onSelectCurrency,
   onOpenConfirm,
+  tx,
 }: {
   dorriAmount: number
   currency: Currency
@@ -139,6 +241,7 @@ function AmountStep({
   onSelectAmount: (amount: number) => void
   onSelectCurrency: (currency: CurrencyCode) => void
   onOpenConfirm: () => void
+  tx: Copy
 }) {
   const disabled = dorriAmount <= 0
 
@@ -148,7 +251,7 @@ function AmountStep({
         <section className="md:rounded-[32px] md:bg-white md:p-10 md:shadow-[0_18px_48px_rgba(44,35,77,0.09)]">
           <div className="relative md:mx-auto md:max-w-2xl">
             <CurrencyCard
-              eyebrow="YOU PAY"
+              eyebrow={tx.youPay}
               value={formatMoney(payAmount, currency)}
               selector={<CurrencySelector selected={currencyCode} onSelect={onSelectCurrency} />}
             />
@@ -159,7 +262,7 @@ function AmountStep({
 
             <CurrencyCard
               active={dorriAmount > 0}
-              eyebrow="YOU CHARGE"
+              eyebrow={tx.youCharge}
               value={dorriAmount.toFixed(2)}
               valuePrefix={<BadgeDollarSign className="h-[21px] w-[21px] text-[#8060F6] md:h-7 md:w-7" />}
               selector={<DorriPill />}
@@ -172,12 +275,12 @@ function AmountStep({
               1 DORRI = <span className="font-bold text-[#6F3FD7]">{formatMoney(currency.rate, currency)}</span>
             </span>
             <span className="text-[#C6C1CF]">&middot;</span>
-            <span>Live</span>
+            <span>{tx.live}</span>
           </div>
         </section>
 
         <section className="mt-6 md:mt-0 md:rounded-[32px] md:bg-white md:p-10 md:shadow-[0_18px_48px_rgba(44,35,77,0.09)]">
-          <h2 className="text-[14px] font-bold text-[#18161F] md:text-2xl">Quick Select</h2>
+          <h2 className="text-[14px] font-bold text-[#18161F] md:text-2xl">{tx.quickSelect}</h2>
           <div className="mt-4 grid grid-cols-3 gap-3 md:grid-cols-2">
             {quickAmounts.map((value) => (
               <button
@@ -199,11 +302,11 @@ function AmountStep({
               </button>
             ))}
             <button type="button" className="h-12 rounded-lg border border-[#CFCBD6] bg-white text-[13px] font-semibold text-[#5F5A68] md:h-16 md:text-base">
-              Custom
+              {tx.custom}
             </button>
           </div>
 
-          <CostSummary currency={currency} amount={payAmount} fee={networkFee} total={total} />
+          <CostSummary currency={currency} amount={payAmount} fee={networkFee} total={total} tx={tx} />
         </section>
       </div>
 
@@ -226,7 +329,7 @@ function AmountStep({
           disabled ? 'cursor-not-allowed bg-[#B7B7B7]' : 'bg-[#673BD2]'
         }`}
       >
-        Exchange
+        {tx.exchange}
       </button>
     </div>
   )
@@ -240,6 +343,7 @@ function PaymentStep({
   paymentMethod,
   onSelectPaymentMethod,
   onPay,
+  tx,
 }: {
   dorriAmount: number
   currency: Currency
@@ -248,26 +352,27 @@ function PaymentStep({
   paymentMethod: PaymentMethod
   onSelectPaymentMethod: (method: PaymentMethod) => void
   onPay: () => void
+  tx: Copy
 }) {
   return (
     <div className="mx-auto flex min-h-[calc(100vh-58px)] w-full max-w-[390px] flex-col px-5 pb-5 pt-6 md:min-h-[calc(100vh-80px)] md:max-w-4xl md:px-10 md:py-12">
       <div className="md:rounded-[32px] md:bg-white md:p-10 md:shadow-[0_18px_48px_rgba(44,35,77,0.09)]">
-        <h2 className="text-[22px] font-black text-[#18161F] md:text-4xl">Payment Method</h2>
-        <p className="mt-1 text-[13px] text-[#5F5A68] md:mt-3 md:text-base">Select your preferred way to pay</p>
+        <h2 className="text-[22px] font-black text-[#18161F] md:text-4xl">{tx.paymentMethod}</h2>
+        <p className="mt-1 text-[13px] text-[#5F5A68] md:mt-3 md:text-base">{tx.paymentSubtitle}</p>
 
         <div className="mt-5 space-y-3 md:mt-8 md:space-y-5">
           <PaymentMethodCard
             selected={paymentMethod === 'card'}
             icon={<CreditCard className="h-[22px] w-[22px] md:h-7 md:w-7" />}
-            title="Credit/Debit Card"
-            description="Instant processing"
+            title={tx.card}
+            description={tx.cardDesc}
             onClick={() => onSelectPaymentMethod('card')}
           />
           <PaymentMethodCard
             selected={paymentMethod === 'wallet'}
             icon={<Wallet className="h-[22px] w-[22px] md:h-7 md:w-7" />}
-            title="Digital Wallet"
-            description="Apple Pay, Google Pay"
+            title={tx.digitalWallet}
+            description={tx.digitalWalletDesc}
             onClick={() => onSelectPaymentMethod('wallet')}
           />
         </div>
@@ -275,18 +380,18 @@ function PaymentStep({
         {paymentMethod && (
           <div className="mt-5 rounded-lg bg-[#673BD2] p-5 text-white shadow-[0_12px_24px_rgba(103,59,210,0.2)] md:mt-8 md:rounded-2xl md:p-7">
             <div className="flex items-end justify-between border-b border-white/20 pb-4 md:pb-5">
-              <span className="text-[12px] text-white/70 md:text-sm">You pay:</span>
+              <span className="text-[12px] text-white/70 md:text-sm">{tx.youPayLine}</span>
               <div className="text-right">
                 <p className="text-[17px] font-black md:text-2xl">{formatMoney(total, currency)}</p>
-                <p className="text-[10px] text-white/70 md:text-xs">Network Fee {formatMoney(networkFee, currency)}</p>
+                <p className="text-[10px] text-white/70 md:text-xs">{tx.networkFee} {formatMoney(networkFee, currency)}</p>
               </div>
             </div>
             <div className="flex items-end justify-between pt-4 md:pt-5">
-              <span className="text-[12px] text-white/70 md:text-sm">You receive:</span>
+              <span className="text-[12px] text-white/70 md:text-sm">{tx.youReceive}</span>
               <div className="text-right">
                 <p className="text-[17px] font-black md:text-2xl">{dorriAmount} DORRI</p>
                 <p className="text-[10px] text-white/70 md:text-xs">
-                  Exchange rate: 1 DORRI = {formatMoney(currency.rate, currency)}
+                  {tx.exchangeRate}: 1 DORRI = {formatMoney(currency.rate, currency)}
                 </p>
               </div>
             </div>
@@ -295,7 +400,7 @@ function PaymentStep({
 
         <p className="mt-4 flex items-center gap-2 text-[11px] text-[#8A8592] md:mt-6 md:text-sm">
           <LockKeyhole className="h-[13px] w-[13px] md:h-4 md:w-4" />
-          Secure, encrypted payment processing via Stripe
+          {tx.secure}
         </p>
       </div>
 
@@ -306,7 +411,7 @@ function PaymentStep({
           paymentMethod ? 'bg-[#673BD2]' : 'cursor-not-allowed bg-[#B7B7B7]'
         }`}
       >
-        Proceed to Pay
+        {tx.proceed}
       </button>
     </div>
   )
@@ -384,13 +489,13 @@ function DorriPill() {
   )
 }
 
-function CostSummary({ currency, amount, fee, total }: { currency: Currency; amount: number; fee: number; total: number }) {
+function CostSummary({ currency, amount, fee, total, tx }: { currency: Currency; amount: number; fee: number; total: number; tx: Copy }) {
   return (
     <div className="mt-5 rounded-lg bg-[#F1ECFF] p-4 text-[12px] md:mt-7 md:rounded-2xl md:p-6 md:text-sm">
-      <SummaryLine label="Charge Amount" value={formatMoney(amount, currency)} />
-      <SummaryLine label="Network Fee" value={formatMoney(fee, currency)} />
+      <SummaryLine label={tx.chargeAmount} value={formatMoney(amount, currency)} />
+      <SummaryLine label={tx.networkFee} value={formatMoney(fee, currency)} />
       <div className="mt-4 flex items-center justify-between text-[13px] font-black md:text-base">
-        <span>Total Cost</span>
+        <span>{tx.totalCost}</span>
         <span className="text-[#6F3FD7]">{formatMoney(total, currency)}</span>
       </div>
     </div>
@@ -458,12 +563,14 @@ function ConfirmDialog({
   total,
   onCancel,
   onConfirm,
+  tx,
 }: {
   dorriAmount: number
   currency: Currency
   total: number
   onCancel: () => void
   onConfirm: () => void
+  tx: Copy
 }) {
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/45 px-5">
@@ -471,14 +578,14 @@ function ConfirmDialog({
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#FFF6C7] text-[#D8A300] md:h-20 md:w-20">
           <AlertTriangle className="h-6 w-6 md:h-9 md:w-9" />
         </div>
-        <h2 className="mt-5 text-center text-[22px] font-black text-[#18161F] md:mt-7 md:text-3xl">Confirm Your Purchase</h2>
+        <h2 className="mt-5 text-center text-[22px] font-black text-[#18161F] md:mt-7 md:text-3xl">{tx.confirmTitle}</h2>
         <p className="mx-auto mt-2 max-w-[260px] text-center text-[12px] leading-relaxed text-[#6B6574] md:mt-3 md:max-w-sm md:text-sm">
-          Please review the transaction details before confirming your order.
+          {tx.confirmDesc}
         </p>
 
         <div className="mt-5 grid grid-cols-2 gap-3 md:mt-7 md:gap-4">
-          <ConfirmBox label="CHARGE" value={`${dorriAmount} DORRI`} />
-          <ConfirmBox label="PAY" value={formatMoney(total, currency)} />
+          <ConfirmBox label={tx.charge} value={`${dorriAmount} DORRI`} />
+          <ConfirmBox label={tx.pay} value={formatMoney(total, currency)} />
         </div>
 
         <div className="mt-4 rounded-lg bg-[#F1ECFF] px-4 py-3 text-right text-[11px] text-[#6B6574] md:rounded-xl md:px-5 md:py-4 md:text-sm">
@@ -488,12 +595,12 @@ function ConfirmDialog({
         <div className="mt-4 rounded-lg border border-[#E7E2ED] p-4 md:rounded-xl md:p-6">
           <h3 className="flex items-center gap-2 text-[14px] font-black text-[#18161F] md:text-lg">
             <Wallet className="h-4 w-4 text-[#6F3FD7] md:h-5 md:w-5" />
-            Wallet Preview
+            {tx.walletPreview}
           </h3>
           <div className="mt-4 space-y-3 text-[13px] md:space-y-4 md:text-base">
-            <PreviewLine label="Current Balance" value="0 DORRI" />
-            <PreviewLine label="New Deposit" value={`+${dorriAmount} DORRI`} positive />
-            <PreviewLine label="New Balance" value={`${dorriAmount} DORRI`} strong />
+            <PreviewLine label={tx.currentBalance} value="0 DORRI" />
+            <PreviewLine label={tx.newDeposit} value={`+${dorriAmount} DORRI`} positive />
+            <PreviewLine label={tx.newBalance} value={`${dorriAmount} DORRI`} strong />
           </div>
         </div>
 
@@ -507,7 +614,7 @@ function ConfirmDialog({
           }}
           className="mt-5 h-12 w-full rounded-lg bg-[#673BD2] text-[14px] font-bold text-white md:h-14 md:rounded-xl md:text-base"
         >
-          Confirm Payment
+          {tx.confirmPayment}
         </button>
         <button
           type="button"
@@ -519,7 +626,7 @@ function ConfirmDialog({
           }}
           className="mt-3 h-12 w-full rounded-lg border border-[#E2DDE8] text-[14px] font-semibold text-[#5F5A68] md:h-14 md:rounded-xl md:text-base"
         >
-          Cancel
+          {tx.cancel}
         </button>
       </div>
     </div>
@@ -556,23 +663,23 @@ function PreviewLine({
   )
 }
 
-function ProcessingScreen({ currency }: { currency: Currency }) {
+function ProcessingScreen({ currency, tx }: { currency: Currency; tx: Copy }) {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-white px-6 text-center">
-      <h1 className="text-[22px] font-black text-[#18161F] md:text-4xl">Processing Payment</h1>
+      <h1 className="text-[22px] font-black text-[#18161F] md:text-4xl">{tx.processing}</h1>
       <p className="mt-2 text-[13px] leading-relaxed text-[#8A8592] md:mt-4 md:text-base">
-        Converting {currency.code} to DORRI via XRPL
+        {tx.processingDesc.replace('{currency}', currency.code)}
         <br />
-        Pathfinding...
+        {tx.pathfinding}
       </p>
       <div className="mt-16 h-28 w-28 animate-spin rounded-full border-[7px] border-[#E8E0FF] border-t-[#8060F6] md:h-36 md:w-36 md:border-[9px]" />
-      <p className="mt-16 text-[13px] text-[#8A8592] md:text-base">Please wait...</p>
-      <p className="mt-3 text-[11px] text-[#C2BEC8] md:text-sm">Securing best rate on Ledger</p>
+      <p className="mt-16 text-[13px] text-[#8A8592] md:text-base">{tx.pleaseWait}</p>
+      <p className="mt-3 text-[11px] text-[#C2BEC8] md:text-sm">{tx.securing}</p>
     </main>
   )
 }
 
-function SuccessScreen({ currency, total, dorriAmount }: { currency: Currency; total: number; dorriAmount: number }) {
+function SuccessScreen({ currency, total, dorriAmount, tx }: { currency: Currency; total: number; dorriAmount: number; tx: Copy }) {
   return (
     <main className="min-h-screen bg-[#858585] md:bg-[#F6F3FF]">
       <div className="mx-auto flex min-h-screen w-full max-w-[390px] flex-col items-center bg-white px-8 pt-40 text-center md:max-w-7xl md:justify-center md:px-8 md:pt-0">
@@ -582,29 +689,29 @@ function SuccessScreen({ currency, total, dorriAmount }: { currency: Currency; t
               <CheckCircle2 className="h-7 w-7 md:h-9 md:w-9" />
             </span>
           </div>
-          <h1 className="mt-6 text-[22px] font-black text-[#18161F] md:mt-8 md:text-4xl">Success!</h1>
-          <p className="mt-2 text-[14px] text-[#5F5A68] md:mt-3 md:text-lg">Funds Added Successfully</p>
+          <h1 className="mt-6 text-[22px] font-black text-[#18161F] md:mt-8 md:text-4xl">{tx.success}</h1>
+          <p className="mt-2 text-[14px] text-[#5F5A68] md:mt-3 md:text-lg">{tx.successDesc}</p>
 
           <div className="mt-10 w-full rounded-lg border border-[#E8E3EF] bg-white p-4 text-left shadow-[0_8px_20px_rgba(31,25,45,0.06)] md:mx-auto md:max-w-2xl md:rounded-xl md:p-8">
-            <p className="text-[10px] font-bold text-[#8A8592] md:text-xs">SETTLEMENT AMOUNT</p>
+            <p className="text-[10px] font-bold text-[#8A8592] md:text-xs">{tx.settlementAmount}</p>
             <p className="mt-1 text-[18px] font-black text-[#18161F] md:text-3xl">
               {formatMoney(total, currency)} <span className="text-[#6F3FD7]">-&gt; DORRI {dorriAmount.toFixed(2)}</span>
             </p>
             <div className="mt-4 flex items-center justify-between border-t border-[#ECE7F2] pt-4 text-[13px] text-[#5F5A68] md:mt-6 md:pt-6 md:text-base">
               <span className="flex items-center gap-2">
                 <Clock3 className="h-[15px] w-[15px] md:h-5 md:w-5" />
-                Settlement time
+                {tx.settlementTime}
               </span>
-              <span className="font-bold text-[#18161F]">3 seconds</span>
+              <span className="font-bold text-[#18161F]">{tx.seconds}</span>
             </div>
           </div>
 
           <div className="mt-8 grid gap-4 md:mx-auto md:max-w-2xl md:grid-cols-2">
             <Link href="/meetups" className="flex w-full items-center justify-center rounded-lg bg-[#673BD2] py-4 text-[14px] font-bold text-white md:h-16 md:text-base">
-              Explore Meetups
+              {tx.exploreMeetups}
             </Link>
             <Link href="/home" className="flex w-full items-center justify-center rounded-lg border border-[#E0DCE7] py-4 text-[14px] font-semibold text-[#5F5A68] md:h-16 md:text-base">
-              Go to Home
+              {tx.goHome}
             </Link>
           </div>
         </div>
