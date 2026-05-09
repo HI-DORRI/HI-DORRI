@@ -38,16 +38,42 @@ a {
   overflow-x: hidden;
 }
 
+.auth-shell {
+  max-width: 390px;
+  margin: 0 auto;
+}
+
 @media (min-width: 430px) {
   .home-shell {
     max-width: none;
     width: 100%;
   }
+
+  .auth-shell {
+    width: 100%;
+    max-width: 520px;
+  }
 }
 
 @media (min-width: 768px) {
+  body {
+    background: #f6f3ff;
+  }
+
+  .app-shell {
+    max-width: none;
+    width: 100%;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
   .home-shell {
     max-width: none;
     width: 100%;
+  }
+
+  .auth-shell {
+    width: 100%;
+    max-width: min(960px, calc(100vw - 80px));
   }
 }

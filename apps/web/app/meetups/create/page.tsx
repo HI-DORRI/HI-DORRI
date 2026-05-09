@@ -16,33 +16,33 @@ export default function CreateMeetup() {
   const isReady = title && date && startTime && endTime && location && capacity > 0
 
   return (
-    <div className="app-shell bg-white min-h-dvh pb-10">
-      <div className="flex items-center justify-between px-5 pt-12 pb-4 border-b border-gray-100">
+    <div className="app-shell bg-white min-h-dvh pb-10 md:min-h-screen md:bg-[#F6F3FF] md:px-10 md:py-12">
+      <div className="flex items-center justify-between px-5 pt-12 pb-4 border-b border-gray-100 md:mx-auto md:max-w-5xl md:rounded-t-[32px] md:border-none md:bg-white md:px-8 md:pt-8">
         <button onClick={() => router.back()} className="p-2 -ml-2"><ArrowLeft size={20} /></button>
         <h1 className="text-[16px] font-black text-[#232129]">밋업 만들기</h1>
         <button className="p-2 -mr-2"><MoreVertical size={20} /></button>
       </div>
 
-      <div className="mx-5 mt-5 h-[160px] rounded-2xl bg-gray-200 flex items-center justify-center">
+      <div className="mx-5 mt-5 h-[160px] rounded-2xl bg-gray-200 flex items-center justify-center md:mx-auto md:mt-0 md:h-64 md:max-w-5xl md:rounded-none md:bg-[#EDE9FE]">
         <button className="flex items-center gap-2 bg-white/80 px-4 py-2 rounded-full text-[13px] font-semibold text-gray-700">
           <Camera size={16} />커버 사진 변경
         </button>
       </div>
 
-      <div className="px-5 mt-6 flex flex-col gap-5">
-        <div>
+      <div className="px-5 mt-6 flex flex-col gap-5 md:mx-auto md:mt-0 md:grid md:max-w-5xl md:grid-cols-2 md:gap-6 md:rounded-b-[32px] md:bg-white md:p-8 md:shadow-[0_18px_48px_rgba(44,35,77,0.08)]">
+        <div className="md:col-span-2">
           <label className="text-[13px] font-bold text-[#232129] mb-2 block">밋업 제목</label>
           <input value={title} onChange={e => setTitle(e.target.value)} placeholder="입력하세요.."
             className="w-full px-4 py-3.5 rounded-xl border border-gray-200 text-[14px] outline-none focus:border-purple-400" />
         </div>
 
-        <div>
+        <div className="md:col-span-2">
           <label className="text-[13px] font-bold text-[#232129] mb-2 block">주최자</label>
           <input value="CryptoMagic" readOnly
             className="w-full px-4 py-3.5 rounded-xl border border-gray-200 text-[14px] bg-gray-50 text-gray-500" />
         </div>
 
-        <div>
+        <div className="md:col-span-2">
           <label className="text-[13px] font-bold text-[#232129] mb-2 block">날짜</label>
           <div className="relative">
             <Calendar size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -90,9 +90,9 @@ export default function CreateMeetup() {
           </div>
         </div>
 
-        <hr className="border-gray-100" />
+        <hr className="border-gray-100 md:col-span-2" />
 
-        <div>
+        <div className="md:col-span-2">
           <label className="text-[13px] font-bold text-[#232129] mb-3 block">밋업 유형</label>
           <div className="grid grid-cols-2 rounded-xl overflow-hidden border border-gray-200">
             <button onClick={() => setType('free')}
@@ -121,7 +121,7 @@ export default function CreateMeetup() {
           </div>
         </div>
 
-        <div className="flex items-start gap-2 bg-purple-50 rounded-xl p-4">
+        <div className="flex items-start gap-2 bg-purple-50 rounded-xl p-4 md:col-span-2">
           <span className="text-purple-400 mt-0.5">ℹ️</span>
           <p className="text-[12px] text-[#656070] leading-relaxed">
             호스트 보증금과 참가비는 <span className="text-purple-600 font-semibold">에스크로</span>로 안전하게 보관되며, 밋업 종료 후 정산됩니다.
@@ -129,7 +129,7 @@ export default function CreateMeetup() {
         </div>
 
         <button disabled={!isReady} onClick={() => router.push('/meetups/create/success')}
-          className="w-full py-4 rounded-2xl font-bold text-white text-[15px] disabled:opacity-40"
+          className="w-full py-4 rounded-2xl font-bold text-white text-[15px] disabled:opacity-40 md:col-span-2 md:mx-auto md:h-14 md:max-w-md"
           style={{ background: 'linear-gradient(90deg, #7B5CF6, #6D28D9)' }}>
           등록하기
         </button>

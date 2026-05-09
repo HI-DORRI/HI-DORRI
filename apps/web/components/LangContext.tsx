@@ -12,8 +12,14 @@ export function LangProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>('KOR')
 
   useEffect(() => {
-    const saved = localStorage.getItem('lang') as Lang
-    if (saved) setLangState(saved)
+    const timeout = window.setTimeout(() => {
+      const saved = localStorage.getItem('lang') as Lang | null
+      if (saved === 'KOR' || saved === 'ENG') {
+        setLangState(saved)
+      }
+    }, 0)
+
+    return () => window.clearTimeout(timeout)
   }, [])
 
   const setLang = (l: Lang) => {

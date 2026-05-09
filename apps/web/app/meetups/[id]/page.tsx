@@ -88,23 +88,24 @@ export default function MeetupDetail({ params }: { params: Promise<{ id: string 
   const router = useRouter()
   const m = data[id] ?? data['1']
   const [showModal, setShowModal] = useState(false)
-  const [applied, setApplied] = useState(false)
+  const applied = false
 
   return (
-    <div className="app-shell bg-gray-50 min-h-dvh pb-24">
-      <div className="relative h-52 flex items-center justify-center"
+    <div className="app-shell bg-gray-50 min-h-dvh pb-24 md:min-h-screen md:bg-[#F6F3FF] md:px-10 md:pb-12 md:pt-28">
+      <div className="md:mx-auto md:grid md:max-w-6xl md:grid-cols-[440px_minmax(0,1fr)] md:gap-8">
+      <div className="relative h-52 flex items-center justify-center md:h-[560px] md:rounded-[32px] md:shadow-[0_18px_48px_rgba(44,35,77,0.12)]"
         style={{ background: 'linear-gradient(160deg, #B39DFA, #EDE9FE)' }}>
-        <Link href="/meetups" className="absolute top-14 left-4 p-2 rounded-xl bg-white/70 backdrop-blur">
+        <Link href="/meetups" className="absolute top-14 left-4 p-2 rounded-xl bg-white/70 backdrop-blur md:left-6 md:top-6">
           <ArrowLeft size={18} />
         </Link>
-        <span className="text-8xl">{m.emoji}</span>
+        <span className="text-8xl md:text-[140px]">{m.emoji}</span>
       </div>
 
-      <div className="px-5 mt-4">
-        <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100">
-          <span className="text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">{m.tag[lang]}</span>
-          <h1 className="text-xl font-black text-gray-900 mt-2">{m.title[lang]}</h1>
-          <div className="mt-4 flex flex-col gap-3">
+      <div className="px-5 mt-4 md:mt-0 md:px-0">
+        <div className="bg-white rounded-3xl p-5 shadow-sm border border-gray-100 md:p-8 md:shadow-[0_18px_48px_rgba(44,35,77,0.08)]">
+          <span className="text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full md:text-sm">{m.tag[lang]}</span>
+          <h1 className="text-xl font-black text-gray-900 mt-2 md:mt-4 md:text-4xl">{m.title[lang]}</h1>
+          <div className="mt-4 flex flex-col gap-3 md:mt-6 md:grid md:grid-cols-3 md:gap-4">
             <div className="flex items-center gap-2 text-sm text-gray-500">
               <Calendar size={15} className="text-purple-400" />{m.date}
             </div>
@@ -116,9 +117,9 @@ export default function MeetupDetail({ params }: { params: Promise<{ id: string 
             </div>
           </div>
           <hr className="my-4 border-gray-100" />
-          <p className="text-sm text-gray-600 leading-relaxed">{m.desc[lang]}</p>
+          <p className="text-sm text-gray-600 leading-relaxed md:text-base">{m.desc[lang]}</p>
           {m.fee > 0 && (
-            <div className="mt-4 bg-purple-50 rounded-xl p-3 flex items-center justify-between">
+            <div className="mt-4 bg-purple-50 rounded-xl p-3 flex items-center justify-between md:p-5">
               <span className="text-[12px] font-semibold text-purple-700">{tx.fee}</span>
               <span className="text-[14px] font-black text-purple-700">{m.fee} DORRI</span>
             </div>
@@ -132,17 +133,18 @@ export default function MeetupDetail({ params }: { params: Promise<{ id: string 
           </div>
         ) : (
           <button onClick={() => setShowModal(true)}
-            className="w-full mt-4 py-4 rounded-2xl font-bold text-white text-base shadow-lg"
+            className="w-full mt-4 py-4 rounded-2xl font-bold text-white text-base shadow-lg md:h-14"
             style={{ background: 'linear-gradient(90deg, #7B5CF6, #6D28D9)' }}>
             {tx.apply}
           </button>
         )}
       </div>
+      </div>
 
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center">
+        <div className="fixed inset-0 z-50 flex items-end justify-center md:items-center">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowModal(false)} />
-          <div className="relative w-full max-w-[390px] bg-white rounded-t-3xl p-6 pb-24">
+          <div className="relative w-full max-w-[390px] bg-white rounded-t-3xl p-6 pb-24 md:max-w-[520px] md:rounded-3xl md:pb-6">
             <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-6" />
             <h2 className="text-[18px] font-black text-[#232129] text-center">{tx.applyTitle}</h2>
             <p className="text-[13px] text-gray-500 text-center mt-1">{m.title[lang]}</p>

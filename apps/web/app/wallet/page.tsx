@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useState } from 'react'
 import { Plus, ArrowLeftRight, ArrowDownLeft, ArrowUpRight, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
@@ -54,29 +54,31 @@ export default function WalletPage() {
       )
 
   return (
-    <div className="app-shell bg-gray-50 min-h-dvh pb-24">
-      <div className="relative overflow-hidden px-5 pt-14 pb-8"
+    <div className="app-shell bg-gray-50 min-h-dvh pb-24 md:min-h-screen md:bg-[#F6F3FF] md:px-10 md:pb-12 md:pt-28">
+      <div className="md:mx-auto md:grid md:max-w-6xl md:grid-cols-[minmax(0,1fr)_520px] md:gap-8">
+        <section>
+      <div className="relative overflow-hidden px-5 pt-2 pb-8 md:rounded-[32px] md:px-10 md:py-10 md:shadow-[0_18px_48px_rgba(44,35,77,0.12)]"
         style={{ background: 'linear-gradient(160deg, #7446D8, #5B21B6)' }}>
         <div className="absolute right-[-28px] top-5 h-32 w-32 rounded-full bg-white/10" />
         <div className="absolute right-10 top-8 h-24 w-24 rounded-full bg-white/10" />
         <div className="absolute right-0 top-20 h-28 w-28 rounded-full bg-white/10" />
         <div className="relative">
-          <p className="text-[13px] font-semibold text-white/80">{tx.balance}</p>
-          <p className="mt-2 text-[32px] font-black text-white leading-none">3,550.00</p>
-          <p className="text-[14px] font-bold text-white/80 mt-1">DORRI</p>
-          <div className="flex gap-3 mt-6">
+          <p className="text-[13px] font-semibold text-white/80 md:text-base">{tx.balance}</p>
+          <p className="mt-2 text-[32px] font-black text-white leading-none md:text-6xl">3,550.00</p>
+          <p className="text-[14px] font-bold text-white/80 mt-1 md:text-lg">DORRI</p>
+          <div className="flex gap-3 mt-6 md:mt-8 md:max-w-lg">
             <Link href="/wallet/add-funds"
-              className="flex h-11 flex-1 items-center justify-center gap-2 rounded-full bg-white text-[13px] font-bold text-[#7446D8]">
+              className="flex h-11 flex-1 items-center justify-center gap-2 rounded-full bg-white text-[13px] font-bold text-[#7446D8] md:h-14 md:text-base">
               <Plus size={16} strokeWidth={2.4} />{tx.charge}
             </Link>
-            <button className="flex h-11 flex-1 items-center justify-center gap-2 rounded-full bg-white text-[13px] font-bold text-[#7446D8]">
+            <button className="flex h-11 flex-1 items-center justify-center gap-2 rounded-full bg-white text-[13px] font-bold text-[#7446D8] md:h-14 md:text-base">
               <ArrowLeftRight size={16} strokeWidth={2.4} />{tx.send}
             </button>
           </div>
         </div>
       </div>
 
-      <div className="mx-5 mt-4 bg-white rounded-2xl p-4 border border-gray-100 flex items-center justify-between">
+      <div className="mx-5 mt-4 bg-white rounded-2xl p-4 border border-gray-100 flex items-center justify-between md:mx-0 md:mt-6 md:p-6 md:shadow-sm">
         <div>
           <p className="text-[11px] text-gray-400 font-medium">{tx.address}</p>
           <p className="text-[12px] font-mono text-gray-700 mt-0.5">0x7f3a...b9c2e1d4</p>
@@ -84,20 +86,22 @@ export default function WalletPage() {
         <button className="text-[11px] font-bold text-[#7B5CF6] bg-purple-50 px-3 py-1.5 rounded-full">{tx.copy}</button>
       </div>
 
-      <div className="mx-5 mt-4">
-        <h2 className="text-[15px] font-black text-[#232129] mb-3">{tx.history}</h2>
-        <div className="flex gap-2 mb-4 overflow-x-auto" style={{ scrollbarWidth: 'none' }}>
+        </section>
+        <section className="md:rounded-[32px] md:bg-white md:p-8 md:shadow-[0_18px_48px_rgba(44,35,77,0.08)]">
+      <div className="mx-5 mt-4 md:mx-0 md:mt-0">
+        <h2 className="text-[15px] font-black text-[#232129] mb-3 md:text-2xl">{tx.history}</h2>
+        <div className="flex gap-2 mb-4 overflow-x-auto md:mb-6" style={{ scrollbarWidth: 'none' }}>
           {tx.tabs.map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)}
-              className={`flex-shrink-0 px-4 py-1.5 rounded-full text-[12px] font-bold border-2 transition
+              className={`flex-shrink-0 px-4 py-1.5 rounded-full text-[12px] font-bold border-2 transition md:px-5 md:py-2 md:text-sm
                 ${activeTab === tab ? 'bg-[#7B5CF6] text-white border-[#7B5CF6]' : 'bg-white text-gray-500 border-gray-200'}`}>
               {tab}
             </button>
           ))}
         </div>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 md:gap-3">
           {filtered.map((tx, i) => (
-            <div key={i} className="bg-white rounded-2xl p-4 flex items-center gap-3 border border-gray-100">
+            <div key={i} className="bg-white rounded-2xl p-4 flex items-center gap-3 border border-gray-100 md:p-5">
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0
                 ${tx.type === 'send' ? 'bg-red-50' : 'bg-green-50'}`}>
                 <tx.icon size={18} className={tx.type === 'send' ? 'text-red-400' : 'text-green-500'} />
@@ -113,11 +117,14 @@ export default function WalletPage() {
             </div>
           ))}
         </div>
-        <button className="w-full mt-3 py-3 rounded-2xl border-2 border-gray-200 text-[13px] font-bold text-gray-500 flex items-center justify-center gap-1">
+        <button className="w-full mt-3 py-3 rounded-2xl border-2 border-gray-200 text-[13px] font-bold text-gray-500 flex items-center justify-center gap-1 md:mt-5 md:h-12 md:text-sm">
           {t[lang].more} <ChevronRight size={14} />
         </button>
+      </div>
+        </section>
       </div>
       <BottomNav />
     </div>
   )
 }
+

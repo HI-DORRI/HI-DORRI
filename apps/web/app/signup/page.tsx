@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 const t = {
   KOR: {
@@ -10,7 +10,7 @@ const t = {
     terms: '계속 진행하면 ',
     termsLink: '이용약관',
     and: ' 및 ',
-    privacyLink: '개인정보처리방침',
+    privacyLink: '개인정보 처리방침',
     termsEnd: '에 동의하게 됩니다.',
     signupTitle: '회원가입',
     fullName: '이름',
@@ -19,15 +19,15 @@ const t = {
     passwordLabel: '비밀번호',
     checks: ['8자 이상', '숫자 또는 특수문자 포함', '대문자 포함'],
     continueBtn: '계속',
-    haveAccount: '계정이 있으신가요?',
-    login: '로그인하기',
+    haveAccount: '이미 계정이 있으신가요?',
+    login: '로그인',
     verifyTitle: '이메일 인증',
     verifySub: '인증 코드를 발송했습니다',
     codeLabel: '6자리 코드 입력',
     resend: '재발송',
     verifyBtn: '인증하기',
     verifyingTitle: '이메일 인증 중...',
-    verifyingSubtitle: '잠시만 기다려주세요',
+    verifyingSubtitle: '잠시만 기다려 주세요',
     verifiedTitle: '이메일 인증 완료!',
     createWallet: '지갑 만들기',
     walletSetup: '지갑 설정',
@@ -43,7 +43,7 @@ const t = {
     mainWallet: '메인 지갑',
     balance: '사용 가능 잔액',
     networkReserve: '네트워크 예치금',
-    networkDesc: '1.2 XRP는 HI-DORRI가 대신 납부합니다. 별도 결제 불필요.',
+    networkDesc: '1.2 XRP는 HI-DORRI가 부담합니다. 별도 결제는 필요하지 않습니다.',
     secure: '안전 & 프라이빗',
     secureDesc: '비수탁형 접근',
     meetupsReady: '밋업 준비 완료',
@@ -152,8 +152,10 @@ export default function SignupPage() {
   // 지갑 생성 애니메이션
   useEffect(() => {
     if (step === 'wallet') {
-      setWalletStatus(['progress', 'waiting', 'waiting'])
-      setWalletStep(1)
+      const t0 = setTimeout(() => {
+        setWalletStatus(['progress', 'waiting', 'waiting'])
+        setWalletStep(1)
+      }, 0)
       const t1 = setTimeout(() => {
         setWalletStatus(['done', 'progress', 'waiting'])
         setWalletStep(2)
@@ -166,7 +168,7 @@ export default function SignupPage() {
         setWalletStatus(['done', 'done', 'done'])
         setTimeout(() => setStep('done'), 800)
       }, 4500)
-      return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3) }
+      return () => { clearTimeout(t0); clearTimeout(t1); clearTimeout(t2); clearTimeout(t3) }
     }
   }, [step])
 
@@ -184,11 +186,11 @@ export default function SignupPage() {
     }
   }
 
-  // 랜딩
+  // 가입 방법 선택
   if (step === 'method') {
   const tx = t[lang]
   return (
-    <div className="app-shell min-h-dvh flex flex-col items-center justify-between pb-10 px-5 pt-8 bg-white">
+    <div className="app-shell auth-shell min-h-dvh flex flex-col items-center justify-between pb-10 px-5 pt-2 bg-white md:my-12 md:min-h-[720px] md:rounded-[32px] md:px-8 md:pt-8 md:shadow-[0_20px_56px_rgba(44,35,77,0.1)]">
       <div className="w-full flex justify-end">
         <button
           onClick={() => setLang(lang === 'KOR' ? 'ENG' : 'KOR')}
@@ -203,10 +205,10 @@ export default function SignupPage() {
         </div>
         <div className="w-full flex flex-col gap-3">
           <button className="w-full py-4 rounded-2xl bg-[#1a1a1a] text-white font-bold text-[15px] flex items-center justify-center gap-3">
-            🍎 {tx.apple}
+            {tx.apple}
           </button>
           <button className="w-full py-4 rounded-2xl border-2 border-gray-200 font-bold text-[15px] flex items-center justify-center gap-3 text-[#232129]">
-            🇬 {tx.google}
+            {tx.google}
           </button>
           <div className="flex items-center gap-3 my-1">
             <hr className="flex-1 border-gray-200" />
@@ -231,12 +233,12 @@ export default function SignupPage() {
   )
 }
 
-  // 이메일 폼
+  // 이메일 입력
   if (step === 'form') {
     const tx = t[lang]
     return (
-    <div className="app-shell min-h-dvh bg-white pb-10">
-      <div className="px-5 pt-12 pb-4 border-b border-gray-100">
+    <div className="app-shell auth-shell min-h-dvh bg-white pb-10 md:my-12 md:min-h-[720px] md:rounded-[32px] md:shadow-[0_20px_56px_rgba(44,35,77,0.1)]">
+      <div className="px-5 pt-2 pb-4 border-b border-gray-100 md:pt-12">
         <button onClick={() => setStep('method')} className="p-2 -ml-2 mb-2">
           <ArrowLeft size={20} />
         </button>
@@ -301,8 +303,8 @@ export default function SignupPage() {
   if (step === 'verify') {
     const tx = t[lang]
     return (
-    <div className="app-shell min-h-dvh bg-white pb-10">
-      <div className="px-5 pt-12 pb-4">
+    <div className="app-shell auth-shell min-h-dvh bg-white pb-10 md:my-12 md:min-h-[720px] md:rounded-[32px] md:shadow-[0_20px_56px_rgba(44,35,77,0.1)]">
+      <div className="px-5 pt-2 pb-4 md:pt-12">
         <button onClick={() => setStep('form')} className="p-2 -ml-2">
           <ArrowLeft size={20} />
         </button>
@@ -332,7 +334,7 @@ export default function SignupPage() {
             ))}
           </div>
           <p className="text-center text-[12px] text-gray-400 mt-4">
-            {lang === 'KOR' ? '코드를 못 받으셨나요?' : "Didn't receive?"}{' '}
+            {lang === 'KOR' ? '코드를 받지 못하셨나요?' : "Didn't receive?"}{' '}
             <button className="text-purple-600 font-bold">{tx.resend}</button>
           </p>
         </div>
@@ -349,7 +351,7 @@ export default function SignupPage() {
 if (step === 'verifying') {
     const tx = t[lang]
     return (
-    <div className="app-shell min-h-dvh bg-white flex flex-col items-center justify-center gap-4">
+    <div className="app-shell auth-shell min-h-dvh bg-white flex flex-col items-center justify-center gap-4 md:my-12 md:min-h-[720px] md:rounded-[32px] md:shadow-[0_20px_56px_rgba(44,35,77,0.1)]">
       <div className="w-16 h-16 rounded-full border-4 border-purple-200 border-t-purple-600 animate-spin" />
       <h2 className="text-[18px] font-black text-[#232129]">{tx.verifyingTitle}</h2>
       <p className="text-[13px] text-gray-400">{tx.verifyingSubtitle}</p>
@@ -360,7 +362,7 @@ if (step === 'verifying') {
 if (step === 'verified') {
     const tx = t[lang]
     return (
-    <div className="app-shell min-h-dvh bg-white flex flex-col items-center justify-center px-5 gap-6">
+    <div className="app-shell auth-shell min-h-dvh bg-white flex flex-col items-center justify-center px-5 gap-6 md:my-12 md:min-h-[720px] md:rounded-[32px] md:shadow-[0_20px_56px_rgba(44,35,77,0.1)]">
       <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center">
         <Check size={36} className="text-green-500" strokeWidth={3} />
       </div>
@@ -377,7 +379,7 @@ if (step === 'verified') {
    if (step === 'wallet') {
     const tx = t[lang]
     return (
-    <div className="app-shell min-h-dvh bg-white px-5 pt-16 pb-10">
+    <div className="app-shell auth-shell min-h-dvh bg-white px-5 pt-2 pb-10 md:my-12 md:min-h-[720px] md:rounded-[32px] md:px-8 md:pt-16 md:shadow-[0_20px_56px_rgba(44,35,77,0.1)]">
       <div className="text-center mb-8">
         <p className="text-[12px] font-bold text-purple-600 uppercase tracking-wider">{tx.walletSetup}</p>
         <h1 className="text-[22px] font-black text-[#232129] mt-1">{tx.walletCreating}</h1>
@@ -417,7 +419,7 @@ if (step === 'verified') {
   if (step === 'done') {
     const tx = t[lang]
     return (
-    <div className="app-shell min-h-dvh bg-white px-5 pt-16 pb-10 flex flex-col">
+    <div className="app-shell auth-shell min-h-dvh bg-white px-5 pt-2 pb-10 flex flex-col md:my-12 md:min-h-[720px] md:rounded-[32px] md:px-8 md:pt-16 md:shadow-[0_20px_56px_rgba(44,35,77,0.1)]">
       <div className="flex flex-col items-center mb-8">
         <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
           <Check size={28} className="text-green-500" strokeWidth={3} />
@@ -481,3 +483,4 @@ if (step === 'verified') {
 
   return null
 }
+
