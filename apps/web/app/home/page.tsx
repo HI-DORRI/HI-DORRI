@@ -67,8 +67,12 @@ export default function HomePage() {
       .catch(() => setHome(null))
   }, [])
 
-  const name = home?.user.name ?? 'Sarah'
-  const balance = home?.dorri?.balance ?? '0'
+  if (!home) {
+    return <HomeSkeleton />
+  }
+
+  const name = home.user.name
+  const balance = home.dorri?.balance ?? '0'
   const reviewMeetup = home?.myMeetups.find((item) => item.status === 'CHECKED_IN' && item.meetup.status === 'CLOSED')
   const myMeetup = reviewMeetup ?? home?.myMeetups[0]
 
@@ -168,6 +172,29 @@ export default function HomePage() {
         </div>
       </div>
 
+      <BottomNav />
+    </main>
+  )
+}
+
+function HomeSkeleton() {
+  return (
+    <main className="app-shell min-h-screen bg-white pb-32 text-[#202024] md:bg-[#F6F3FF] md:px-10 md:pb-12 md:pt-28">
+      <header className="flex items-center justify-between border-b border-gray-100 px-4 pb-4 pt-2 md:hidden">
+        <div className="h-6 w-6 rounded bg-gray-100" />
+        <div className="h-8 w-20 rounded bg-gray-100" />
+        <div className="h-6 w-6 rounded bg-gray-100" />
+      </header>
+      <div className="px-5 md:mx-auto md:grid md:max-w-6xl md:grid-cols-[minmax(0,1.15fr)_420px] md:items-start md:gap-6 md:px-0">
+        <div className="mt-5 rounded-[28px] bg-white md:col-span-2 md:mt-0 md:p-8 md:shadow-[0_14px_34px_rgba(44,35,77,0.07)]">
+          <div className="h-8 w-48 animate-pulse rounded bg-gray-100 md:h-10" />
+          <div className="mt-3 h-4 w-64 animate-pulse rounded bg-gray-100" />
+        </div>
+        <div className="mt-5 h-[210px] animate-pulse rounded-2xl bg-purple-100 md:mt-0 md:h-[250px] md:rounded-[28px]" />
+        <div className="mt-6 h-[220px] animate-pulse rounded-[28px] bg-gray-100 md:mt-0" />
+        <div className="mt-6 h-[230px] animate-pulse rounded-[28px] bg-gray-100" />
+        <div className="mt-5 h-[140px] animate-pulse rounded-2xl bg-gray-100 md:mt-6 md:h-[260px] md:rounded-[28px]" />
+      </div>
       <BottomNav />
     </main>
   )

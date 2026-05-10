@@ -60,9 +60,13 @@ export default function ProfilePage() {
     getMe().then(setMe).catch(() => setMe(null))
   }, [])
 
-  const joinedMeetups = me?.joinedMeetups ?? []
-  const hostedMeetups = me?.hostedMeetups ?? []
-  const joinDate = me?.createdAt
+  if (!me) {
+    return <ProfileSkeleton title={tx.title} />
+  }
+
+  const joinedMeetups = me.joinedMeetups ?? []
+  const hostedMeetups = me.hostedMeetups ?? []
+  const joinDate = me.createdAt
     ? new Date(me.createdAt).toLocaleDateString(lang === 'KOR' ? 'ko-KR' : 'en-US', { year: 'numeric', month: 'long', day: 'numeric' })
     : tx.joinDateVal
 
@@ -86,7 +90,7 @@ export default function ProfilePage() {
             </div>
           </div>
           <div className="flex-1">
-            <h2 className="text-[20px] font-black text-[#232129] md:text-4xl">{me?.name ?? 'CryptoMagic'}</h2>
+            <h2 className="text-[20px] font-black text-[#232129] md:text-4xl">{me.name}</h2>
             <div className="flex items-center gap-1 mt-1">
               <Star size={13} fill="#7B5CF6" className="text-[#7B5CF6]" />
               <span className="text-[12px] font-bold text-[#7B5CF6]">{tx.hostGrade}</span>
@@ -104,12 +108,12 @@ export default function ProfilePage() {
 
         <div className="grid grid-cols-3 gap-3 mt-5 md:mt-8 md:max-w-2xl md:gap-4">
           {[
-            { label: tx.stats[0], value: String(me?.stats?.joinedMeetups ?? 0) },
-            { label: tx.stats[1], value: String(me?.stats?.hostedMeetups ?? 0) },
-            { label: tx.stats[2], value: me?.stats?.trustScore ?? me?.reputationScore ?? '0' },
+            { label: tx.stats[0], value: String(me.stats?.joinedMeetups ?? 0) },
+            { label: tx.stats[1], value: String(me.stats?.hostedMeetups ?? 0) },
+            { label: tx.stats[2], value: me.stats?.trustScore ?? me.reputationScore ?? '0' },
           ].map(stat => (
             <div key={stat.label} className="bg-[#F4F0FF] rounded-2xl p-3 text-center md:p-5">
-              <p className="text-[18px] font-black text-[#7B5CF6] md:text-3xl">{stat.label === tx.stats[2] ? `${me?.reputationScore ?? stat.value}` : stat.value}</p>
+              <p className="text-[18px] font-black text-[#7B5CF6] md:text-3xl">{stat.label === tx.stats[2] ? `${me.reputationScore ?? stat.value}` : stat.value}</p>
               <p className="text-[10px] text-gray-500 mt-0.5 font-medium md:text-sm">{stat.label}</p>
             </div>
           ))}
@@ -203,6 +207,35 @@ function EmptyState({ label }: { label: string }) {
   return (
     <div className="rounded-2xl border border-gray-100 bg-white p-8 text-center text-[13px] font-semibold text-gray-400">
       {label}
+    </div>
+  )
+}
+
+function ProfileSkeleton({ title }: { title: string }) {
+  return (
+    <div className="app-shell min-h-dvh bg-gray-50 pb-24 md:min-h-screen md:bg-[#F6F3FF] md:px-10 md:pb-12 md:pt-28">
+      <div className="flex items-center justify-between border-b border-gray-100 bg-white px-5 pb-4 pt-2 md:mx-auto md:max-w-6xl md:rounded-t-[32px] md:border-none md:px-8 md:pt-8">
+        <div className="h-6 w-6 rounded bg-gray-100" />
+        <h1 className="text-[16px] font-black text-[#232129] md:text-2xl">{title}</h1>
+        <div className="h-6 w-6 rounded bg-gray-100" />
+      </div>
+      <div className="bg-white px-5 pb-5 pt-6 md:mx-auto md:max-w-6xl md:px-8 md:pb-8 md:pt-4">
+        <div className="flex items-center gap-4 md:gap-6">
+          <div className="h-20 w-20 animate-pulse rounded-full bg-gray-100 md:h-28 md:w-28" />
+          <div className="flex-1">
+            <div className="h-7 w-40 animate-pulse rounded bg-gray-100 md:h-10" />
+            <div className="mt-3 h-4 w-28 animate-pulse rounded bg-gray-100" />
+            <div className="mt-3 h-4 w-56 animate-pulse rounded bg-gray-100" />
+          </div>
+        </div>
+        <div className="mt-5 grid grid-cols-3 gap-3 md:mt-8 md:max-w-2xl md:gap-4">
+          {[0, 1, 2].map((item) => <div key={item} className="h-20 animate-pulse rounded-2xl bg-[#F4F0FF] md:h-28" />)}
+        </div>
+      </div>
+      <div className="mx-5 mt-4 grid gap-3 md:mx-auto md:mt-6 md:max-w-6xl md:grid-cols-2 md:px-0">
+        {[0, 1, 2, 3].map((item) => <div key={item} className="h-20 animate-pulse rounded-2xl bg-white" />)}
+      </div>
+      <BottomNav />
     </div>
   )
 }
