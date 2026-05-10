@@ -205,6 +205,10 @@ export default function MeetupDetailPage({ params }: { params: Promise<{ id: str
     }
   }
 
+  if (!meetup || !me) {
+    return <MeetupDetailSkeleton />
+  }
+
   return (
     <div className="app-shell min-h-dvh bg-gray-50 pb-24 md:min-h-screen md:bg-[#F6F3FF] md:px-10 md:pb-12 md:pt-28">
       <div className="md:mx-auto md:grid md:max-w-6xl md:grid-cols-[440px_minmax(0,1fr)] md:gap-8">
@@ -221,22 +225,22 @@ export default function MeetupDetailPage({ params }: { params: Promise<{ id: str
         <div className="mt-4 px-5 md:mt-0 md:px-0">
           <section className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm md:p-8 md:shadow-[0_18px_48px_rgba(44,35,77,0.08)]">
             <span className="rounded-full bg-purple-50 px-2 py-0.5 text-[10px] font-bold text-purple-600 md:text-sm">
-              {meetup?.status ?? 'Meetup'}
+              {meetup.status}
             </span>
-            <h1 className="mt-2 text-xl font-black text-gray-900 md:mt-4 md:text-4xl">{meetup?.title ?? tx.loading}</h1>
+            <h1 className="mt-2 text-xl font-black text-gray-900 md:mt-4 md:text-4xl">{meetup.title}</h1>
             <div className="mt-4 flex flex-col gap-3 md:mt-6 md:grid md:grid-cols-3 md:gap-4">
               <Info icon={<Calendar size={15} />} text={meetup ? new Date(meetup.startsAt).toLocaleString() : '-'} />
-              <Info icon={<MapPin size={15} />} text={meetup?.location.name ?? '-'} />
-              <Info icon={<Users size={15} />} text={`${meetup?.appliedCount ?? 0}${tx.peopleJoined}`} />
+              <Info icon={<MapPin size={15} />} text={meetup.location.name} />
+              <Info icon={<Users size={15} />} text={`${meetup.appliedCount}${tx.peopleJoined}`} />
             </div>
             <hr className="my-4 border-gray-100" />
-            <p className="text-sm leading-relaxed text-gray-600 md:text-base">{meetup?.description ?? ''}</p>
+            <p className="text-sm leading-relaxed text-gray-600 md:text-base">{meetup.description}</p>
             <div className="mt-4 rounded-xl bg-purple-50 p-3 md:p-5">
               <div className="flex items-center justify-between">
-                <span className="text-[12px] font-semibold text-purple-700">{meetup?.type === 'FREE' ? tx.deposit : tx.fee}</span>
+                <span className="text-[12px] font-semibold text-purple-700">{meetup.type === 'FREE' ? tx.deposit : tx.fee}</span>
                 <span className="text-[14px] font-black text-purple-700">{fee > 0 ? `${fee} DORRI` : tx.free}</span>
               </div>
-              <p className="mt-2 text-[11px] text-purple-500">{tx.host}: {meetup?.host.name ?? '-'}</p>
+              <p className="mt-2 text-[11px] text-purple-500">{tx.host}: {meetup.host.name}</p>
             </div>
           </section>
 
@@ -313,6 +317,33 @@ export default function MeetupDetailPage({ params }: { params: Promise<{ id: str
 
 function Info({ icon, text }: { icon: ReactNode; text: string }) {
   return <div className="flex items-center gap-2 text-sm text-gray-500"><span className="text-purple-400">{icon}</span>{text}</div>
+}
+
+function MeetupDetailSkeleton() {
+  return (
+    <div className="app-shell min-h-dvh bg-gray-50 pb-24 md:min-h-screen md:bg-[#F6F3FF] md:px-10 md:pb-12 md:pt-28">
+      <div className="md:mx-auto md:grid md:max-w-6xl md:grid-cols-[440px_minmax(0,1fr)] md:gap-8">
+        <div className="relative flex h-52 animate-pulse items-center justify-center bg-purple-100 md:h-[560px] md:rounded-[32px]" />
+        <div className="mt-4 px-5 md:mt-0 md:px-0">
+          <section className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm md:p-8">
+            <div className="h-5 w-20 animate-pulse rounded-full bg-purple-50" />
+            <div className="mt-4 h-8 w-3/4 animate-pulse rounded bg-gray-100 md:h-12" />
+            <div className="mt-6 grid gap-3 md:grid-cols-3">
+              {[0, 1, 2].map((item) => <div key={item} className="h-5 animate-pulse rounded bg-gray-100" />)}
+            </div>
+            <div className="my-4 border-t border-gray-100" />
+            <div className="space-y-2">
+              <div className="h-4 animate-pulse rounded bg-gray-100" />
+              <div className="h-4 w-5/6 animate-pulse rounded bg-gray-100" />
+            </div>
+            <div className="mt-4 h-20 animate-pulse rounded-xl bg-purple-50" />
+          </section>
+          <div className="mt-4 h-24 animate-pulse rounded-3xl bg-white" />
+        </div>
+      </div>
+      <BottomNav />
+    </div>
+  )
 }
 
 function ParticipantStatus({

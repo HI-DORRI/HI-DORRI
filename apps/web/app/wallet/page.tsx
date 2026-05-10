@@ -48,9 +48,10 @@ export default function WalletPage() {
   const tx = t[lang]
   const [activeTab, setActiveTab] = useState(tx.tabs[0])
   const [wallet, setWallet] = useState<{ xrplAddress: string } | null>(null)
-  const [dorriBalance, setDorriBalance] = useState('0')
+  const [dorriBalance, setDorriBalance] = useState<string | null>(null)
   const [ledgerTxs, setLedgerTxs] = useState<LedgerTx[]>([])
   const [copied, setCopied] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     getWalletSummary()
@@ -59,6 +60,7 @@ export default function WalletPage() {
         setDorriBalance(dorri?.balance ?? '0')
       })
       .catch(() => undefined)
+      .finally(() => setIsLoading(false))
     getLedgerTxs().then(setLedgerTxs).catch(() => setLedgerTxs([]))
   }, [])
 
@@ -99,7 +101,11 @@ export default function WalletPage() {
         <div className="absolute right-0 top-20 h-28 w-28 rounded-full bg-white/10" />
         <div className="relative">
           <p className="text-[13px] font-semibold text-white/80 md:text-base">{tx.balance}</p>
-          <p className="mt-2 text-[32px] font-black text-white leading-none md:text-6xl">{Number(dorriBalance).toLocaleString()}</p>
+          {isLoading ? (
+            <div className="mt-2 h-10 w-36 animate-pulse rounded bg-white/20 md:h-16 md:w-56" />
+          ) : (
+            <p className="mt-2 text-[32px] font-black text-white leading-none md:text-6xl">{Number(dorriBalance ?? '0').toLocaleString()}</p>
+          )}
           <p className="text-[14px] font-bold text-white/80 mt-1 md:text-lg">DORRI</p>
           <div className="flex gap-3 mt-6 md:mt-8 md:max-w-lg">
             <Link href="/wallet/add-funds"
@@ -116,7 +122,11 @@ export default function WalletPage() {
       <div className="mx-5 mt-4 bg-white rounded-2xl p-4 border border-gray-100 flex items-center justify-between md:mx-0 md:mt-6 md:p-6 md:shadow-sm">
         <div>
           <p className="text-[11px] text-gray-400 font-medium">{tx.address}</p>
-          <p className="text-[12px] font-mono text-gray-700 mt-0.5">{wallet?.xrplAddress ?? '-'}</p>
+          {isLoading ? (
+            <div className="mt-1 h-4 w-52 animate-pulse rounded bg-gray-100" />
+          ) : (
+            <p className="text-[12px] font-mono text-gray-700 mt-0.5">{wallet?.xrplAddress ?? '-'}</p>
+          )}
         </div>
         <button onClick={copyAddress} className="flex items-center gap-1 text-[11px] font-bold text-[#7B5CF6] bg-purple-50 px-3 py-1.5 rounded-full">
           <Copy size={12} />{copied ? (lang === 'KOR' ? '복사됨' : 'Copied') : tx.copy}
@@ -137,7 +147,12 @@ export default function WalletPage() {
           ))}
         </div>
         <div className="flex flex-col gap-2 md:gap-3">
-          {filtered.map((item) => (
+          {isLoading && (
+            <>
+              {[0, 1, 2].map((item) => <div key={item} className="h-[74px] animate-pulse rounded-2xl bg-white md:h-[82px]" />)}
+            </>
+          )}
+          {!isLoading && filtered.map((item) => (
             <a key={item.id} href={item.explorerUrl} target="_blank" rel="noreferrer" className="bg-white rounded-2xl p-4 flex items-center gap-3 border border-gray-100 transition hover:border-purple-200 hover:shadow-sm md:p-5">
               <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0
                 ${item.type === 'send' ? 'bg-red-50' : 'bg-green-50'}`}>
@@ -153,7 +168,7 @@ export default function WalletPage() {
               </div>
             </a>
           ))}
-          {filtered.length === 0 && (
+          {!isLoading && filtered.length === 0 && (
             <div className="rounded-2xl border border-gray-100 bg-white p-8 text-center text-[13px] font-semibold text-gray-400">
               {lang === 'KOR' ? '거래 내역이 없어요.' : 'No transactions yet.'}
             </div>
