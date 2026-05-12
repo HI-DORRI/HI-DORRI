@@ -1,9 +1,9 @@
 # 💜 HI-DORRI (하이도리)
 > **해외 송금 수수료 없이, 노쇼 걱정 없이! 글로벌 밋업의 새로운 정산 인프라**
 
-<p align="center">
-  <img src="./KakaoTalk_20260426_170602471_02.png" alt="HI-DORRI Main Banner" width="100%" />
-</p>
+<div align="center">
+  <img src="./docs/HI-DORRI LOGO.png" width="100%" />
+</div>
 
 <p align="center">
   <img src="https://img.shields.io/badge/Network-XRPL-blue?style=for-the-badge&logo=ripple" alt="XRPL" />
