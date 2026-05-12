@@ -54,6 +54,7 @@ const copy = {
     checkedInDone: '체크인 완료. 밋업 종료 후 참가자가 리뷰를 작성할 수 있어요.',
     noShowDone: '노쇼 처리 및 정산 플로우가 진행된 상태입니다.',
     noShowSettled: '노쇼 처리 및 정산 완료 대상입니다.',
+    attendedSettled: '참가 완료 및 정산 완료 대상입니다.',
     completed: '처리 완료된 신청입니다.',
     requestFailed: '요청 처리에 실패했어요.',
   },
@@ -85,6 +86,7 @@ const copy = {
     checkedInDone: 'Checked in. Participants can write reviews after the meetup closes.',
     noShowDone: 'No-show settlement is in progress.',
     noShowSettled: 'No-show settlement completed.',
+    attendedSettled: 'Attendance settlement completed.',
     completed: 'This application has been processed.',
     requestFailed: 'Request failed.',
   },
@@ -552,8 +554,11 @@ function OrganizerApplicationCard({ application, isClosed, disabled, lang, onAct
   const tx = copy[lang]
   const isPending = application.status === 'PENDING_APPROVAL'
   const isApproved = application.status === 'APPROVED'
+  const settlementReason = application.settlement?.reason
+  const isAttendedSettlement = application.status === 'SETTLED' && (settlementReason === 'FREE_ATTENDED' || settlementReason === 'PAID_ATTENDED')
+  const isNoShowSettlement = application.status === 'SETTLED' && (settlementReason === 'FREE_NO_SHOW' || settlementReason === 'PAID_NO_SHOW')
   const isCheckedIn = application.status === 'CHECKED_IN'
-  const isNoShow = application.status === 'NO_SHOW' || application.status === 'SETTLED'
+  const isNoShow = application.status === 'NO_SHOW' || isNoShowSettlement
   const statusLabel = statusLabels[lang][application.status as keyof typeof statusLabels.KOR] ?? application.status
 
   return (
@@ -582,7 +587,8 @@ function OrganizerApplicationCard({ application, isClosed, disabled, lang, onAct
         {!isClosed && isNoShow && <p className="text-xs font-semibold text-gray-500">{tx.noShowDone}</p>}
         {isClosed && isNoShow && <p className="text-xs font-semibold text-gray-500">{tx.noShowSettled}</p>}
         {isClosed && isCheckedIn && <p className="text-xs font-semibold text-green-600">{tx.checkedInDone}</p>}
-        {!isPending && !isApproved && !isCheckedIn && !isNoShow && <p className="text-xs font-semibold text-gray-500">{tx.completed}</p>}
+        {isClosed && isAttendedSettlement && <p className="text-xs font-semibold text-green-600">{tx.attendedSettled}</p>}
+        {!isPending && !isApproved && !isCheckedIn && !isNoShow && !isAttendedSettlement && <p className="text-xs font-semibold text-gray-500">{tx.completed}</p>}
       </div>
     </div>
   )
