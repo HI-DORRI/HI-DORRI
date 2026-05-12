@@ -187,6 +187,7 @@ export class MeetupsService {
       amountDorri: this.formatDecimal(lockedDorriAmount),
       issuer: dorriAccount.issuerAddress,
     });
+    await this.refreshDorriBalanceSnapshot(userId, wallet.xrplAddress, dorriAccount.issuerAddress);
 
     return {
       ...escrowTx,
@@ -573,6 +574,21 @@ export class MeetupsService {
         code: 'XRPL_TRANSACTION_FAILED',
         message: 'XRPL DORRI escrow create transaction failed',
       });
+    }
+  }
+
+  private async refreshDorriBalanceSnapshot(userId: string, account: string, issuer: string) {
+    try {
+      const balance = await this.xrplService.getDorriBalance({ account, issuer });
+      await this.prisma.dorriAccount.update({
+        where: { userId },
+        data: {
+          balanceSnapshot: new Prisma.Decimal(balance),
+          balanceCheckedAt: new Date(),
+        },
+      });
+    } catch (error) {
+      return;
     }
   }
 

@@ -518,6 +518,11 @@ export class OrganizerService {
       destination: meetup.organizer.wallet?.xrplAddress ?? meetup.hostEscrow.ownerAddress,
       amount: this.formatDecimal(meetup.hostEscrow.lockedDorriAmount),
     });
+    await this.refreshDorriBalanceSnapshot(
+      organizerId,
+      meetup.organizer.wallet?.xrplAddress ?? meetup.hostEscrow.ownerAddress,
+      issuerAddress,
+    );
     const now = new Date();
 
     const updatedEscrow = await this.prisma.hostMeetupEscrow.update({
@@ -720,6 +725,21 @@ export class OrganizerService {
         code: 'XRPL_TRANSACTION_FAILED',
         message: 'DORRI settlement payment transaction failed',
       });
+    }
+  }
+
+  private async refreshDorriBalanceSnapshot(userId: string, account: string, issuer: string) {
+    try {
+      const balance = await this.xrplService.getDorriBalance({ account, issuer });
+      await this.prisma.dorriAccount.update({
+        where: { userId },
+        data: {
+          balanceSnapshot: new Prisma.Decimal(balance),
+          balanceCheckedAt: new Date(),
+        },
+      });
+    } catch (error) {
+      return;
     }
   }
 
