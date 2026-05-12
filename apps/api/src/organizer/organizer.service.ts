@@ -485,7 +485,6 @@ export class OrganizerService {
     if (
       !meetup ||
       meetup.organizerId !== organizerId ||
-      meetup.type !== 'PAID' ||
       meetup.status !== 'CLOSED' ||
       !meetup.hostEscrow ||
       meetup.hostEscrow.status !== EscrowStatus.CREATED ||

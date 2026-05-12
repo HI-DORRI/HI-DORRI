@@ -1,5 +1,6 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Prisma } from '@prisma/client';
 import { Client, Wallet } from 'xrpl';
 import {
   buildDorriPayment,
@@ -97,7 +98,33 @@ export class XrplService implements OnModuleDestroy {
       (trustLine) => trustLine.currency === currency && trustLine.account === params.issuer,
     );
 
-    return line?.balance ?? '0';
+    if (!line) {
+      return '0';
+    }
+
+    const balance = new Prisma.Decimal(line.balance ?? '0');
+    const lockedBalance = new Prisma.Decimal(
+      this.getAmountValue(
+        (line as { locked_balance?: unknown; LockedBalance?: unknown }).locked_balance ??
+          (line as { locked_balance?: unknown; LockedBalance?: unknown }).LockedBalance,
+      ),
+    );
+    const spendableBalance = balance.minus(lockedBalance);
+
+    return spendableBalance.isNegative() ? '0' : spendableBalance.toString();
+  }
+
+  private getAmountValue(amount: unknown) {
+    if (typeof amount === 'string') {
+      return amount;
+    }
+
+    if (typeof amount === 'object' && amount !== null && 'value' in amount) {
+      const value = (amount as { value?: unknown }).value;
+      return typeof value === 'string' ? value : '0';
+    }
+
+    return '0';
   }
 
   async sendDorriPayment(params: {

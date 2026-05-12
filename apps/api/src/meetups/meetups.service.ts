@@ -96,10 +96,7 @@ export class MeetupsService {
     }
 
     const amounts = this.resolveMeetupAmounts(dto);
-    const hostEscrowAmount = dto.type === 'PAID' ? new Prisma.Decimal(20) : null;
-    const hostEscrowTx = hostEscrowAmount
-      ? await this.createHostEscrow(userId, hostEscrowAmount)
-      : null;
+    const hostEscrowTx = await this.createHostEscrow(userId, new Prisma.Decimal(20));
     const meetup = await this.prisma.meetup.create({
       data: {
         organizerId: user.id,
@@ -162,6 +159,13 @@ export class MeetupsService {
       type: meetup.type,
       status: meetup.status,
       createdAt: meetup.createdAt.toISOString(),
+      hostEscrow: hostEscrowTx
+        ? {
+            createTxHash: hostEscrowTx.txHash,
+            explorerUrl: this.createExplorerUrl(hostEscrowTx.txHash),
+            lockedDorriAmount: this.formatDecimal(hostEscrowTx.lockedDorriAmount),
+          }
+        : null,
     };
   }
 
