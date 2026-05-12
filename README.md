@@ -29,8 +29,8 @@
 - **노쇼 시:** 보증금이 주최자에게 귀속되어 경제적 손실 및 평판 하락 발생
 
 ### 2. 🆔 DORRIDATOR 신원 검증 시스템
-- 커뮤니티 검증자(DORRIDATOR)가 재직/재학 여부를 검증합니다.
-- 검증 완료 시 **NFT 배지**가 발급되어 지갑에 영구 귀속됩니다.
+- 스테이킹 기반의 검증자(DORRIDATOR)가 유저의 신원을 검증합니다.
+- 검증 완료 시 신뢰의 증표로 **NFT 배지**를 지갑에 발행합니다.
 
 ### 3. ⛓️ 온체인 신뢰 히스토리 (On-chain Reputation)
 - 모든 참석 및 평가 이력이 XRPL에 기록됩니다.
@@ -71,10 +71,16 @@
 
 ---
 
-## 🤝 Team HI-DORRI
-- **Project Manager / Developer:** [Your Name/Link]
-- **Blockchain Engineer:** [Name/Link]
-- **UI/UX Designer:** [Name/Link]
+## 🛠 Tech Stack
+
+### Infrastructure & Blockchain
+- **Network:** XRPL (Native Escrow, NFT, Cross-Currency Payment)
+- **Deployment:** Vercel
+
+### Frontend
+- **Framework:** Next.js (App Router)
+- **Language:** TypeScript
+- **Styling:** Tailwind CSS
 
 ---
 <p align="center">
