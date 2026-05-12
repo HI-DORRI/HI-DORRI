@@ -1,173 +1,82 @@
-# HI-DORRI
+# 💜 HI-DORRI (하이도리)
+> **해외 송금 수수료 없이, 노쇼 걱정 없이! 글로벌 밋업의 새로운 정산 인프라**
 
-XRPL 기반 DORRI 토큰, 밋업 신청/정산, 프론트 웹앱을 함께 관리하는 모노레포입니다.
+<p align="center">
+  <img src="./KakaoTalk_20260426_170602471_02.png" alt="HI-DORRI Main Banner" width="100%" />
+</p>
 
-## 핸드폰에서 프론트 확인하기
+<p align="center">
+  <img src="https://img.shields.io/badge/Network-XRPL-blue?style=for-the-badge&logo=ripple" alt="XRPL" />
+  <img src="https://img.shields.io/badge/Framework-Next.js-black?style=for-the-badge&logo=next.js" alt="Next.js" />
+  <img src="https://img.shields.io/badge/Trust-Escrow_Based-blueviolet?style=for-the-badge" alt="Escrow" />
+  <img src="https://img.shields.io/badge/Identity-NFT_Badge-white?style=for-the-badge" alt="NFT" />
+</p>
 
-컴퓨터와 핸드폰이 같은 Wi-Fi에 연결되어 있어야 합니다.
+---
 
-1. 컴퓨터의 로컬 IP를 확인합니다.
+## 🚀 Project Overview
+**HI-DORRI**는 크립토 밋업, 대학 미팅, 소셜 데이팅 등 P2P 만남에서 발생하는 **'신원 미검증'**과 **'노쇼(No-Show)'** 문제를 **XRPL Escrow 기반 신뢰 정산 프로토콜**로 해결하는 소셜 매칭 플랫폼입니다.
 
-```bash
-ipconfig
-```
+단순한 매칭을 넘어, 온체인에 기록되는 신뢰 히스토리를 통해 사용자의 평판이 자산이 되는 세상을 만듭니다.
 
-`IPv4 Address` 값을 확인합니다. 예: `172.30.1.38`
+---
 
-2. 프론트 개발 서버를 외부 접속 가능하게 실행합니다.
+## ✨ Key Features
 
-```bash
-cd apps/web
-npm run dev -- --hostname 0.0.0.0
-```
+### 1. 🛡️ 에스크로 기반 신뢰 보증 (Escrow Lock-up)
+- 신청 시 **DORRI 토큰**이 XRPL Escrow에 자동 락업됩니다.
+- **출석 시:** 보증금 전액 반환 및 신뢰 점수 상승
+- **노쇼 시:** 보증금이 주최자에게 귀속되어 경제적 손실 및 평판 하락 발생
 
-3. 핸드폰 브라우저에서 접속합니다.
+### 2. 🆔 DORRIDATOR 신원 검증 시스템
+- 커뮤니티 검증자(DORRIDATOR)가 재직/재학 여부를 검증합니다.
+- 검증 완료 시 **NFT 배지**가 발급되어 지갑에 영구 귀속됩니다.
 
-```text
-http://컴퓨터IPv4주소:3000
-```
+### 3. ⛓️ 온체인 신뢰 히스토리 (On-chain Reputation)
+- 모든 참석 및 평가 이력이 XRPL에 기록됩니다.
+- 크립토 밋업에서 쌓은 신뢰가 대학 미팅, 프리랜서 매칭에서도 유효하게 작동합니다.
 
-예:
+### 4. 🌍 Cross-Currency 글로벌 정산
+- XRPL의 경로 탐색 기능을 통해 자국 통화 충전 시 주최자에게 원화로 자동 환전 정산됩니다. (수수료 절감 & 실시간 정산)
 
-```text
-http://172.30.1.38:3000
-```
+---
 
-핸드폰에서 버튼 클릭이 안 되거나 터미널에 `Blocked cross-origin request`가 뜨면, [apps/web/next.config.ts](apps/web/next.config.ts)의 `allowedDevOrigins`에 현재 컴퓨터 IP를 추가한 뒤 개발 서버를 재시작하세요.
+## 🛠 Why XRPL?
+우리는 소셜 서비스의 실용성을 위해 **XRPL(XRP Ledger)**을 선택했습니다.
 
-## 프로젝트 구조
+| Feature | Advantage in HI-DORRI |
+| :--- | :--- |
+| **Native Escrow** | 스마트 컨트랙트 취약점 없는 안전한 자산 락업 |
+| **Low Fee** | 0.00001 XRP 수준의 수수료로 소액 소셜 거래 가능 |
+| **Fast Finality** | 3~5초 이내의 완결성으로 현장 QR 체크인 즉시 정산 |
+| **DEX & Payment** | 별도 인프라 없는 글로벌 환전 및 결제 지원 |
 
-```text
-apps/api      NestJS 백엔드 API
-apps/web      Next.js 프론트 웹앱
-docs          API/DB 문서
-prisma        Prisma schema, migrations
-```
+---
 
-## 기술 스택
+## 📈 Comparison
 
-```text
-Frontend  Next.js + React + Tailwind CSS
-Backend   NestJS + TypeScript
-DB        PostgreSQL + Prisma
-XRPL      xrpl.js
-Package   npm workspaces
-```
+| 항목 | 기존 방식 (카톡/루마) | **HI-DORRI** |
+| :--- | :--- | :--- |
+| **노쇼 방지** | 수단 없음 | **에스크로 + 패널티** |
+| **신원 검증** | 확인 불가 / 고비용 | **DORRIDATOR NFT 배지** |
+| **정산 속도** | 2~5일 소요 | **3~5초 (실시간)** |
+| **신뢰 기록** | 플랫폼 종료 시 소멸 | **XRPL 온체인 영구 귀속** |
 
-## 로컬 실행
+---
 
-처음 한 번만 설치합니다.
+## 💻 Tech Stack
+- **Frontend:** Next.js (App Router), Tailwind CSS
+- **Blockchain:** XRPL (Escrow, NFT, Cross-Currency Payment)
+- **Deployment:** Vercel
 
-```bash
-npm install
-copy .env.example .env
-```
+---
 
-DB를 실행하고 Prisma를 준비합니다.
+## 🤝 Team HI-DORRI
+- **Project Manager / Developer:** [Your Name/Link]
+- **Blockchain Engineer:** [Name/Link]
+- **UI/UX Designer:** [Name/Link]
 
-```bash
-docker compose up -d
-npm run prisma:generate
-npm run prisma:migrate
-```
-
-프론트 실행:
-
-```bash
-npm run dev:web
-```
-
-백엔드 실행:
-
-```bash
-npm run dev:api
-```
-
-기본 URL:
-
-```text
-Web  http://localhost:3000
-API  http://localhost:4000/api
-DB   localhost:5432
-```
-
-## 주요 명령어
-
-```bash
-npm run typecheck
-npm run lint
-npm run build
-npm run prisma:studio
-npm run seed:dev
-npm run reset:dev-data
-```
-
-워크스페이스별 실행:
-
-```bash
-npm run typecheck --workspace @hi-dorri/web
-npm run typecheck --workspace @hi-dorri/api
-npm run build --workspace @hi-dorri/web
-npm run build --workspace @hi-dorri/api
-```
-
-## 현재 프론트 진행 상황
-
-구현됨:
-
-- `/home`: 홈 화면
-- `/wallet/add-funds`: DORRI 충전 플로우 목업
-- 모바일/데스크톱 반응형 레이아웃
-
-아직 미연결:
-
-- 실제 로그인 세션/access token
-- 백엔드 API 연동
-- 실제 결제/충전 처리
-
-## 현재 백엔드 진행 상황
-
-주요 API는 `http://localhost:4000/api` 기준입니다.
-
-```text
-Auth        /auth/signup, /auth/login, /auth/verify-email
-Users       /users/me
-Wallets     /wallets/create, /wallets/me
-DORRI       /dorri/trustline, /dorri/balance, /dorri/charge/*
-Home        /home
-Meetups     /meetups
-Apply       /meetups/:id/apply, /applications/*
-Organizer   /organizer/*
-```
-
-자세한 API/DB 문서는 아래 파일을 참고하세요.
-
-```text
-docs/api-spec.md
-docs/db-guide.md
-```
-
-## XRPL 개발용 지갑
-
-플랫폼 지갑은 역할별로 분리되어 있습니다.
-
-```text
-DORRI_ISSUER  DORRI token issuer
-SETTLEMENT    escrow destination / settlement sender
-FEE           platform fee receiver
-```
-
-초기 testnet 설정:
-
-```bash
-npm run platform-wallets:init
-npm run platform-wallets:trustlines
-npm run dorri-issuer:configure
-```
-
-## 주의사항
-
-- `.env`는 커밋하지 않습니다.
-- 프론트는 현재 디자인/목업 중심이며 API 연결은 이후 작업입니다.
-- Prisma schema 변경 시 migration도 함께 관리합니다.
-- 핸드폰 테스트 시 컴퓨터와 핸드폰은 같은 네트워크에 있어야 합니다.
+---
+<p align="center">
+  © 2026 HI-DORRI Team. Built on <b>XRPL</b>.
+</p>
