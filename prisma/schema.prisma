@@ -213,6 +213,7 @@ model Meetup {
   reviews       Review[]
   settlements   Settlement[]
   tags          MeetupTag[]
+  hostEscrow    HostMeetupEscrow?
 
   @@index([organizerId])
   @@index([status, startsAt])
@@ -331,6 +332,34 @@ model Escrow {
   canceledAt           DateTime?
   updatedAt            DateTime          @updatedAt
   application          MeetupApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([ownerAddress, offerSequence])
+  @@index([status])
+}
+
+model HostMeetupEscrow {
+  id                   String       @id @default(cuid())
+  meetupId             String       @unique
+  status               EscrowStatus @default(CREATED)
+  ownerAddress         String
+  destinationAddress   String
+  offerSequence        Int
+  lockedDorriAmount    Decimal      @db.Decimal(18, 6)
+  amountDrops          String?
+  condition            String?
+  fulfillmentEncrypted String?
+  createTxHash         String       @unique
+  finishTxHash         String?      @unique
+  cancelTxHash         String?      @unique
+  explorerUrl          String?
+  finishAfter          DateTime?
+  cancelAfter          DateTime?
+  refundedAt           DateTime?
+  createdAt            DateTime     @default(now())
+  finishedAt           DateTime?
+  canceledAt           DateTime?
+  updatedAt            DateTime     @updatedAt
+  meetup               Meetup       @relation(fields: [meetupId], references: [id], onDelete: Cascade)
 
   @@index([ownerAddress, offerSequence])
   @@index([status])

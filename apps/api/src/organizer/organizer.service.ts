@@ -160,6 +160,9 @@ export class OrganizerService {
       where: { id: meetup.id },
       data: { status: 'CLOSED' },
     });
+    const hostDepositRefund = await this.tryRefundHostDeposit(updated.id, userId, {
+      allowNoEvaluationTargets: true,
+    });
 
     return {
       meetup: {
@@ -169,6 +172,7 @@ export class OrganizerService {
         closedAt: new Date().toISOString(),
       },
       nextStep: 'REVIEW_AND_SETTLEMENT',
+      hostDepositRefund,
     };
   }
 
@@ -435,6 +439,8 @@ export class OrganizerService {
           })
         : null;
 
+    const hostDepositRefund = await this.tryRefundHostDeposit(application.meetupId, userId);
+
     return {
       evaluation: {
         id: evaluation.id,
@@ -453,7 +459,133 @@ export class OrganizerService {
             reason: block.reason,
           }
         : null,
+      hostDepositRefund,
     };
+  }
+
+  private async tryRefundHostDeposit(
+    meetupId: string,
+    organizerId: string,
+    options: { allowNoEvaluationTargets?: boolean } = {},
+  ) {
+    const meetup = await this.prisma.meetup.findUnique({
+      where: { id: meetupId },
+      include: {
+        organizer: { include: { wallet: true } },
+        hostEscrow: true,
+        applications: {
+          include: {
+            organizerEvaluation: true,
+            settlement: { select: { reason: true } },
+          },
+        },
+      },
+    });
+
+    if (
+      !meetup ||
+      meetup.organizerId !== organizerId ||
+      meetup.type !== 'PAID' ||
+      meetup.status !== 'CLOSED' ||
+      !meetup.hostEscrow ||
+      meetup.hostEscrow.status !== EscrowStatus.CREATED ||
+      meetup.hostEscrow.refundedAt
+    ) {
+      return null;
+    }
+
+    const evaluationTargets = meetup.applications.filter((application) =>
+      this.isHostEvaluationTarget(application),
+    );
+
+    if (evaluationTargets.length === 0 && options.allowNoEvaluationTargets !== true) {
+      return null;
+    }
+
+    const allEvaluated = evaluationTargets.every((application) => application.organizerEvaluation);
+
+    if (!allEvaluated) {
+      return null;
+    }
+
+    const settlementWallet = await this.getSettlementWallet();
+    const issuerAddress = await this.getIssuerAddress();
+    const finishTx = await this.finishEscrow(meetup.hostEscrow);
+    const refundTx = await this.submitSettlementPayment({
+      seed: this.decryptSeed(settlementWallet.encryptedSeed),
+      account: settlementWallet.xrplAddress,
+      issuer: issuerAddress,
+      destination: meetup.organizer.wallet?.xrplAddress ?? meetup.hostEscrow.ownerAddress,
+      amount: this.formatDecimal(meetup.hostEscrow.lockedDorriAmount),
+    });
+    const now = new Date();
+
+    const updatedEscrow = await this.prisma.hostMeetupEscrow.update({
+      where: { id: meetup.hostEscrow.id },
+      data: {
+        status: EscrowStatus.FINISHED,
+        finishTxHash: finishTx.txHash,
+        finishedAt: now,
+        refundedAt: now,
+      },
+    });
+
+    await this.prisma.ledgerTx.createMany({
+      data: [
+        {
+          userId: organizerId,
+          txHash: finishTx.txHash,
+          txType: 'ESCROW_FINISH',
+          status: 'VALIDATED',
+          rawJson: finishTx.rawJson as Prisma.InputJsonValue,
+          validatedAt: now,
+        },
+        {
+          userId: organizerId,
+          txHash: refundTx.txHash,
+          txType: 'SETTLEMENT_PAYMENT',
+          status: 'VALIDATED',
+          rawJson: refundTx.rawJson as Prisma.InputJsonValue,
+          validatedAt: now,
+        },
+      ],
+      skipDuplicates: true,
+    });
+
+    return {
+      escrow: {
+        id: updatedEscrow.id,
+        status: updatedEscrow.status,
+        lockedDorriAmount: this.formatDecimal(updatedEscrow.lockedDorriAmount),
+        finishTxHash: updatedEscrow.finishTxHash,
+        refundedAt: updatedEscrow.refundedAt?.toISOString() ?? null,
+      },
+      refund: {
+        txHash: refundTx.txHash,
+        amountDorri: this.formatDecimal(updatedEscrow.lockedDorriAmount),
+      },
+    };
+  }
+
+  private isHostEvaluationTarget(application: {
+    status: ApplicationStatus;
+    settlement: { reason: string } | null;
+  }) {
+    if (
+      application.status === ApplicationStatus.CHECKED_IN ||
+      application.status === ApplicationStatus.NO_SHOW ||
+      application.status === ApplicationStatus.REVIEWED
+    ) {
+      return true;
+    }
+
+    if (application.status !== ApplicationStatus.SETTLED || !application.settlement) {
+      return false;
+    }
+
+    return ['FREE_ATTENDED', 'FREE_NO_SHOW', 'PAID_ATTENDED', 'PAID_NO_SHOW'].includes(
+      application.settlement.reason,
+    );
   }
 
   private async getOrganizerMeetup(meetupId: string, userId: string) {

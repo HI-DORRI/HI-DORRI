@@ -96,6 +96,10 @@ export class MeetupsService {
     }
 
     const amounts = this.resolveMeetupAmounts(dto);
+    const hostEscrowAmount = dto.type === 'PAID' ? new Prisma.Decimal(20) : null;
+    const hostEscrowTx = hostEscrowAmount
+      ? await this.createHostEscrow(userId, hostEscrowAmount)
+      : null;
     const meetup = await this.prisma.meetup.create({
       data: {
         organizerId: user.id,
@@ -113,6 +117,22 @@ export class MeetupsService {
         entryFeeDorri: amounts.entryFeeDorri,
         capacity: dto.capacity,
         status,
+        hostEscrow: hostEscrowTx
+          ? {
+              create: {
+                status: 'CREATED',
+                ownerAddress: hostEscrowTx.ownerAddress,
+                destinationAddress: hostEscrowTx.destinationAddress,
+                offerSequence: hostEscrowTx.offerSequence,
+                lockedDorriAmount: hostEscrowTx.lockedDorriAmount,
+                amountDrops: null,
+                createTxHash: hostEscrowTx.txHash,
+                explorerUrl: this.createExplorerUrl(hostEscrowTx.txHash),
+                finishAfter: hostEscrowTx.finishAfter,
+                cancelAfter: hostEscrowTx.cancelAfter,
+              },
+            }
+          : undefined,
         tags: dto.tags?.length
           ? {
               create: [...new Set(dto.tags.map((tag) => tag.trim()).filter(Boolean))].map((name) => ({
@@ -123,12 +143,56 @@ export class MeetupsService {
       },
     });
 
+    if (hostEscrowTx) {
+      await this.prisma.ledgerTx.create({
+        data: {
+          userId,
+          txHash: hostEscrowTx.txHash,
+          txType: 'ESCROW_CREATE',
+          status: 'VALIDATED',
+          rawJson: hostEscrowTx.rawJson as Prisma.InputJsonValue,
+          validatedAt: new Date(),
+        },
+      });
+    }
+
     return {
       id: meetup.id,
       title: meetup.title,
       type: meetup.type,
       status: meetup.status,
       createdAt: meetup.createdAt.toISOString(),
+    };
+  }
+
+  private async createHostEscrow(userId: string, lockedDorriAmount: Prisma.Decimal) {
+    const [wallet, dorriAccount, settlementWallet] = await Promise.all([
+      this.getWallet(userId),
+      this.getDorriAccount(userId),
+      this.getSettlementWallet(),
+    ]);
+    const balance = await this.getDorriBalance(wallet.xrplAddress, dorriAccount.issuerAddress);
+
+    if (new Prisma.Decimal(balance).lt(lockedDorriAmount)) {
+      throw new InternalServerErrorException({
+        code: 'INSUFFICIENT_DORRI_BALANCE',
+        message: 'Host DORRI balance is insufficient for the meetup deposit',
+      });
+    }
+
+    const escrowTx = await this.createEscrow({
+      seed: this.decryptSeed(wallet.encryptedSeed),
+      account: wallet.xrplAddress,
+      destination: settlementWallet.xrplAddress,
+      amountDorri: this.formatDecimal(lockedDorriAmount),
+      issuer: dorriAccount.issuerAddress,
+    });
+
+    return {
+      ...escrowTx,
+      ownerAddress: wallet.xrplAddress,
+      destinationAddress: settlementWallet.xrplAddress,
+      lockedDorriAmount,
     };
   }
 
