@@ -85,6 +85,7 @@
 
 ## 🤝 Team HI-DORRI
 하이도리 팀은 XRPL 기반의 투명한 신뢰 사회를 만들기 위해 모인 전문가들입니다.
+> **각 팀원의 배지를 클릭하면 상세 프로필(LinkedIn/GitHub) 페이지로 이동합니다.**
 
 <div align="center">
   <table style="border: none; border-collapse: collapse;">
