@@ -89,41 +89,37 @@
 <div align="center">
   <table style="border: none; border-collapse: collapse;">
     <tr>
-      <td align="center" width="250px">
+      <td align="center" width="300px">
+        <b>유인경 (PM)</b><br />
         <a href="https://www.linkedin.com/in/inkyungyoo999">
-          <img src="https://img.shields.io/badge/Project%20Manager-8A2BE2?style=for-the-badge&logo=linkedin&logoColor=white" /><br />
-          <img src="https://avatars.githubusercontent.com/u/inkyungyoo999?v=4" width="100px;" /><br />
-          <sub><b>유인경 (PM)</b></sub>
+          <img src="https://img.shields.io/badge/Project%20Manager-8A2BE2?style=for-the-badge&logo=linkedin&logoColor=white" />
         </a>
       </td>
-      <td align="center" width="250px">
+      <td align="center" width="300px">
+        <b>한서영 (Designer)</b><br />
         <a href="https://www.linkedin.com/in/seoyounghan23?trk=contact-info">
-          <img src="https://img.shields.io/badge/UI%2FUX%20Designer-DEFF9A?style=for-the-badge&logo=linkedin&logoColor=black" /><br />
-          <img src="https://avatars.githubusercontent.com/u/seoyounghan23?v=4" width="100px;" /><br />
-          <sub><b>한서영 (Designer)</b></sub>
+          <img src="https://img.shields.io/badge/UI%2FUX%20Designer-DEFF9A?style=for-the-badge&logo=linkedin&logoColor=black" />
         </a>
       </td>
     </tr>
     <tr>
-      <td align="center" width="250px">
+      <td align="center" width="300px">
+        <br /><b>손시영 (Developer)</b><br />
         <a href="https://www.linkedin.com/in/siyeong-son-71a9313b7">
-          <img src="https://img.shields.io/badge/Developer-000000?style=for-the-badge&logo=linkedin&logoColor=white" /><br />
-          <img src="https://avatars.githubusercontent.com/u/sonsiyeong977?v=4" width="100px;" /><br />
-          <sub><b>손시영 (Developer)</b></sub>
+          <img src="https://img.shields.io/badge/Developer-000000?style=for-the-badge&logo=linkedin&logoColor=white" />
         </a>
       </td>
-      <td align="center" width="250px">
+      <td align="center" width="300px">
+        <br /><b>최시원 (Developer)</b><br />
         <a href="https://github.com/SiwonChoi25">
-          <img src="https://img.shields.io/badge/Developer-000000?style=for-the-badge&logo=github&logoColor=white" /><br />
-          <img src="https://avatars.githubusercontent.com/u/SiwonChoi25?v=4" width="100px;" /><br />
-          <sub><b>최시원 (Developer)</b></sub>
+          <img src="https://img.shields.io/badge/Developer-000000?style=for-the-badge&logo=github&logoColor=white" />
         </a>
       </td>
     </tr>
   </table>
 </div>
 
-<br/>
+<br />
 
 ---
 <p align="center">
