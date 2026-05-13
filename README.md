@@ -1,4 +1,4 @@
-# 💜 HI-DORRI (하이도리)
+# <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Activities/Flower%20Playing%20Cards.png" alt="Flower Playing Cards" width="40" height="40" vertical-align="middle" /> HI-DORRI (하이도리)
 > **해외 송금 수수료 없이, 노쇼 걱정 없이! 글로벌 밋업의 새로운 정산 인프라**
 
 <div align="center">
@@ -12,10 +12,16 @@
   <img src="https://img.shields.io/badge/Identity-NFT_Badge-white?style=for-the-badge" alt="NFT" />
 </p>
 
+<div align="center">
+  <a href="https://hi-dorri-web.vercel.app/">
+    <img src="https://img.shields.io/badge/서비스_바로가기-8A2BE2?style=for-the-badge&logo=vercel&logoColor=white" />
+  </a>
+</div>
+
 ---
 
 ## 🚀 Project Overview
-**HI-DORRI**는 크립토 밋업, 대학 미팅, 소셜 데이팅 등 P2P 만남에서 발생하는 **'신원 미검증'**과 **'노쇼(No-Show)'** 문제를 **XRPL Escrow 기반 신뢰 정산 프로토콜**로 해결하는 소셜 매칭 플랫폼입니다.
+**HI-DORRI**는 크립토 밋업, 대학 미팅, 소셜 데이팅 등 P2P 만남에서 발생하는 '노쇼(No-Show)' 등의 문제를 **XRPL Escrow 기반 신뢰 정산 프로토콜**로 해결하는 소셜 매칭 플랫폼입니다.
 
 단순한 매칭을 넘어, 온체인에 기록되는 신뢰 히스토리를 통해 사용자의 평판이 자산이 되는 세상을 만듭니다.
 
@@ -64,13 +70,6 @@
 
 ---
 
-## 💻 Tech Stack
-- **Frontend:** Next.js (App Router), Tailwind CSS
-- **Blockchain:** XRPL (Escrow, NFT, Cross-Currency Payment)
-- **Deployment:** Vercel
-
----
-
 ## 🛠 Tech Stack
 
 ### Infrastructure & Blockchain
@@ -81,6 +80,50 @@
 - **Framework:** Next.js (App Router)
 - **Language:** TypeScript
 - **Styling:** Tailwind CSS
+
+---
+
+## 🤝 Team HI-DORRI
+하이도리 팀은 XRPL 기반의 투명한 신뢰 사회를 만들기 위해 모인 전문가들입니다.
+
+<div align="center">
+  <table style="border: none; border-collapse: collapse;">
+    <tr>
+      <td align="center" width="250px">
+        <a href="https://www.linkedin.com/in/inkyungyoo999">
+          <img src="https://img.shields.io/badge/Project%20Manager-8A2BE2?style=for-the-badge&logo=linkedin&logoColor=white" /><br />
+          <img src="https://avatars.githubusercontent.com/u/inkyungyoo999?v=4" width="100px;" /><br />
+          <sub><b>유인경 (PM)</b></sub>
+        </a>
+      </td>
+      <td align="center" width="250px">
+        <a href="https://www.linkedin.com/in/seoyounghan23?trk=contact-info">
+          <img src="https://img.shields.io/badge/UI%2FUX%20Designer-DEFF9A?style=for-the-badge&logo=linkedin&logoColor=black" /><br />
+          <img src="https://avatars.githubusercontent.com/u/seoyounghan23?v=4" width="100px;" /><br />
+          <sub><b>한서영 (Designer)</b></sub>
+        </a>
+      </td>
+    </tr>
+    <tr>
+      <td align="center" width="250px">
+        <a href="https://www.linkedin.com/in/siyeong-son-71a9313b7">
+          <img src="https://img.shields.io/badge/Developer-000000?style=for-the-badge&logo=linkedin&logoColor=white" /><br />
+          <img src="https://avatars.githubusercontent.com/u/sonsiyeong977?v=4" width="100px;" /><br />
+          <sub><b>손시영 (Developer)</b></sub>
+        </a>
+      </td>
+      <td align="center" width="250px">
+        <a href="https://github.com/SiwonChoi25">
+          <img src="https://img.shields.io/badge/Developer-000000?style=for-the-badge&logo=github&logoColor=white" /><br />
+          <img src="https://avatars.githubusercontent.com/u/SiwonChoi25?v=4" width="100px;" /><br />
+          <sub><b>최시원 (Developer)</b></sub>
+        </a>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<br/>
 
 ---
 <p align="center">
