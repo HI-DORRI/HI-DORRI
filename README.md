@@ -1,4 +1,4 @@
-# <img src="https://raw.githubusercontent.com/Tarikul-Islam-Anik/Animated-Fluent-Emojis/master/Emojis/Activities/Flower%20Playing%20Cards.png" alt="Flower Playing Cards" width="40" height="40" vertical-align="middle" /> HI-DORRI (하이도리)
+# 💜HI-DORRI (하이도리)
 > **해외 송금 수수료 없이, 노쇼 걱정 없이! 글로벌 밋업의 새로운 정산 인프라**
 
 <div align="center">
